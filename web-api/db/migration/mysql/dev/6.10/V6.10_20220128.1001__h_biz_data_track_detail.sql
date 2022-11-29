@@ -1,0 +1,1 @@
+ALTER TABLE  h_biz_data_track_detail ADD COLUMN  title varchar(200) NULL DEFAULT NULL COMMENT '留痕数据标题' AFTER name;

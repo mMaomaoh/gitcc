@@ -1,0 +1,1 @@
+CREATE INDEX idx_user_favorites_userId ON H_USER_FAVORITES ("USERID");

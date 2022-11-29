@@ -1,0 +1,1 @@
+ALTER TABLE h_perm_biz_function ADD COLUMN attribute longtext NULL COMMENT '拓展属性';

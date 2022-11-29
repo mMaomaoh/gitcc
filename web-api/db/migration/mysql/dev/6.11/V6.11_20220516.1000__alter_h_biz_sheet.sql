@@ -1,0 +1,2 @@
+ALTER TABLE h_biz_sheet MODIFY COLUMN `printTemplateJson` longtext NULL COMMENT '关联的打印模板' AFTER `shortCode`;
+ALTER TABLE h_biz_sheet_history MODIFY COLUMN `printTemplateJson` longtext NULL COMMENT '关联的打印模板' AFTER `shortCode`;

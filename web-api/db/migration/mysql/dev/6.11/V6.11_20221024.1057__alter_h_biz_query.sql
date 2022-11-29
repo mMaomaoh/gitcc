@@ -1,0 +1,1 @@
+ALTER TABLE h_biz_query add options text DEFAULT NULL COMMENT '扩展配置';

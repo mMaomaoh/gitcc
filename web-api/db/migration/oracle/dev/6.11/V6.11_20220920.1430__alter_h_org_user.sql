@@ -1,0 +1,1 @@
+alter table H_ORG_USER modify GENDER VARCHAR2(6);

@@ -1,0 +1,1 @@
+ALTER TABLE  h_biz_query_column ADD COLUMN syncDefaultFormat bit(1) NULL DEFAULT NULL COMMENT '是否同步默认格式';

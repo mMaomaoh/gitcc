@@ -1,0 +1,1 @@
+ALTER TABLE  h_biz_query_condition ADD COLUMN includeSubData bit(1) NULL DEFAULT NULL COMMENT '是否包含字数据' AFTER visible;

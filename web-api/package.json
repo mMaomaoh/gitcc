@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "local": "cross-env MAVEN_OPTS='-Dfile.encoding=utf-8' mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=local",
+    "prod": "cross-env MAVEN_OPTS='-Dfile.encoding=utf-8' mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=prod",
+    "start": "npm run local",
+    "compile": "mvn clean compile -U",
+    "build": "mvn clean package -U",
+    "build:release": "mvn clean package",
+    "build:war": "mvn clean package -P war",
+    "mvn:dependency:tree": "mvn dependency:tree",
+    "mvn:effective-pom": "mvn help:effective-pom",
+    "mvn:copy-dependencies": "mvn clean dependency:copy-dependencies package"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

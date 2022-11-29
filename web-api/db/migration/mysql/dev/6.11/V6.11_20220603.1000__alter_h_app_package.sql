@@ -1,0 +1,1 @@
+alter table h_app_package add builtInApp bit(1) default 0 comment '内置应用 1：是 0：否';

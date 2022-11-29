@@ -1,0 +1,36 @@
+CREATE TABLE  H_IM_MESSAGE_STATION
+   (
+   ID  VARCHAR2(36) NOT NULL ,
+	 BIZPARAMS  CLOB,
+	 CONTENT  CLOB,
+	 CREATEDTIME  DATE,
+	 MESSAGETYPE  VARCHAR2(40),
+	 MODIFIEDTIME  DATE,
+	 TITLE  VARCHAR2(100),
+	 SENDER  VARCHAR2(42),
+	 PRIMARY KEY ( ID )
+   );
+comment on column H_IM_MESSAGE_STATION.BIZPARAMS is '业务参数表';
+comment on column H_IM_MESSAGE_STATION.CONTENT is '内容';
+comment on column H_IM_MESSAGE_STATION.CREATEDTIME is '创建时间';
+comment on column H_IM_MESSAGE_STATION.MODIFIEDTIME is '修改时间';
+comment on column H_IM_MESSAGE_STATION.MESSAGETYPE is '消息类型';
+comment on column H_IM_MESSAGE_STATION.TITLE is '标题';
+comment on column H_IM_MESSAGE_STATION.SENDER is '消息关联的发起人';
+
+CREATE TABLE H_IM_MESSAGE_STATION_USER
+   (
+   ID VARCHAR2(36) NOT NULL ,
+	MODIFIEDTIME DATE,
+	RECEIVER VARCHAR2(42),
+	MESSAGEID VARCHAR2(36),
+	READSTATE VARCHAR2(255),
+	PRIMARY KEY (ID)
+   ) ;
+comment on column H_IM_MESSAGE_STATION_USER.receiver is '接收者';
+comment on column H_IM_MESSAGE_STATION_USER.MODIFIEDTIME is '修改时间';
+comment on column H_IM_MESSAGE_STATION_USER.messageId is '消息id';
+comment on column H_IM_MESSAGE_STATION_USER.readState is 'READED-已读、UNREADED-未读';
+
+create index idx_readState on H_IM_MESSAGE_STATION_USER (READSTATE);
+create index idx_receiver on H_IM_MESSAGE_STATION_USER (RECEIVER);

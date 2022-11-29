@@ -1,0 +1,2 @@
+ALTER TABLE h_org_user MODIFY COLUMN imgUrlId varchar(200) DEFAULT NULL COMMENT '头像id';
+ALTER TABLE h_app_package MODIFY COLUMN logoUrlId varchar(200) DEFAULT NULL ;

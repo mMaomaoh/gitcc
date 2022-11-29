@@ -1,0 +1,1 @@
+ALTER TABLE h_user_favorites MODIFY COLUMN bizObjectKey varchar(200) DEFAULT NULL AFTER remarks;

@@ -1,0 +1,2 @@
+alter table H_BIZ_QUERY_COLUMN add (SYNCDEFAULTFORMAT NUMBER(1,0) null);
+comment on column H_BIZ_QUERY_COLUMN.SYNCDEFAULTFORMAT is '是否同步默认格式';

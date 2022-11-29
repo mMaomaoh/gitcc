@@ -1,0 +1,1 @@
+ALTER TABLE h_from_comment_attachment MODIFY refId VARCHAR2(200);

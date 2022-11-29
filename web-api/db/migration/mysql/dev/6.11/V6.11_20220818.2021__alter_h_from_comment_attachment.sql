@@ -1,0 +1,1 @@
+ALTER TABLE h_from_comment_attachment MODIFY COLUMN refId varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '上传到文件系统的文件id' AFTER `name`;

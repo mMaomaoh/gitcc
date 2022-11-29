@@ -1,0 +1,1 @@
+ALTER TABLE h_biz_attachment MODIFY COLUMN `bizObjectId` varchar(200) NOT NULL AFTER `id`;

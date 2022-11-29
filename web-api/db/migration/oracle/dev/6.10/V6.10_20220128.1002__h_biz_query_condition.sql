@@ -1,0 +1,2 @@
+alter table H_BIZ_QUERY_CONDITION add (INCLUDESUBDATA NUMBER(1,0) null);
+comment on column H_BIZ_QUERY_CONDITION.INCLUDESUBDATA is '是否包含字数据';
