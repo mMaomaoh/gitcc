@@ -88,13 +88,13 @@ public class OvertimeSummaryService extends BaseCommonService {
                     updateTiaoXiuSummary(sc_tx, uid, yearMonth, timeLength);
                 }
                 // 更新到考勤汇总
-                Map<String, Object> attDataMap = Maps.newHashMap();
-                attDataMap.put(AttendanceSummaryModel.gongZuoRiJiaBan, 0);
-                attDataMap.put(AttendanceSummaryModel.xiuXiRiJiaBan, 0);
-                attDataMap.put(AttendanceSummaryModel.jieJiaRiJiaBan, 0);
-                attDataMap.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, 0);
-                attDataMap.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, 0);
-                attDataMap.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, 0);
+                Map<String, Double> attDataMap = Maps.newHashMap();
+                attDataMap.put(AttendanceSummaryModel.gongZuoRiJiaBan, (double)0);
+                attDataMap.put(AttendanceSummaryModel.xiuXiRiJiaBan, (double)0);
+                attDataMap.put(AttendanceSummaryModel.jieJiaRiJiaBan, (double)0);
+                attDataMap.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, (double)0);
+                attDataMap.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, (double)0);
+                attDataMap.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, (double)0);
                 if (JIABAN_TYPE_1.equals(jiaBanType)) {
                     attDataMap.put(AttendanceSummaryModel.gongZuoRiJiaBan, timeLength);
                 } else if (JIABAN_TYPE_2.equals(jiaBanType)) {
@@ -166,6 +166,7 @@ public class OvertimeSummaryService extends BaseCommonService {
     }
 
     public String updateAttendanceSummery(Map<String, Object> params) throws Exception {
+
         String schemaCode = (String)params.get("schemaCode");
         LocalDateTime yearMonth = (LocalDateTime)params.get("yearMonth");
         String orgUserId = (String)params.get("userId");
@@ -194,6 +195,8 @@ public class OvertimeSummaryService extends BaseCommonService {
         } else {
             // 更新数据
             Map<String, Object> formDataMap = formDataList.get(0).getData();
+            // tableData.put(ExtBaseModel.id, formDataMap.get(ExtBaseModel.id));
+            tableData.putAll(formDataMap);
             // 数据库查出来的
             double gongZuoRiJiaBan =
                 ((BigDecimal)formDataMap.get(AttendanceSummaryModel.gongZuoRiJiaBan)).doubleValue();
@@ -207,14 +210,12 @@ public class OvertimeSummaryService extends BaseCommonService {
                 ((BigDecimal)formDataMap.get(AttendanceSummaryModel.jieSuanQiTaJiaBan)).doubleValue();
 
             // 需要累加的
-            double gongZuoRiJiaBan1 = ((BigDecimal)data.get(AttendanceSummaryModel.gongZuoRiJiaBan)).doubleValue();
-            double xiuXiRiJiaBan1 = ((BigDecimal)data.get(AttendanceSummaryModel.xiuXiRiJiaBan)).doubleValue();
-            double jieJiaRiJiaBan1 = ((BigDecimal)data.get(AttendanceSummaryModel.jieJiaRiJiaBan)).doubleValue();
-            double jieSuanTiaoXiuJiaBan1 =
-                ((BigDecimal)data.get(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan)).doubleValue();
-            double jieSuanXinZiJiaBan1 =
-                ((BigDecimal)data.get(AttendanceSummaryModel.jieSuanXinZiJiaBan)).doubleValue();
-            double jieSuanQiTaJiaBan1 = ((BigDecimal)data.get(AttendanceSummaryModel.jieSuanQiTaJiaBan)).doubleValue();
+            double gongZuoRiJiaBan1 = (double)data.get(AttendanceSummaryModel.gongZuoRiJiaBan);
+            double xiuXiRiJiaBan1 = (double)data.get(AttendanceSummaryModel.xiuXiRiJiaBan);
+            double jieJiaRiJiaBan1 = (double)data.get(AttendanceSummaryModel.jieJiaRiJiaBan);
+            double jieSuanTiaoXiuJiaBan1 = (double)data.get(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan);
+            double jieSuanXinZiJiaBan1 = (double)data.get(AttendanceSummaryModel.jieSuanXinZiJiaBan);
+            double jieSuanQiTaJiaBan1 = (double)data.get(AttendanceSummaryModel.jieSuanQiTaJiaBan);
 
             // 累加计算
             tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, gongZuoRiJiaBan + gongZuoRiJiaBan1);
