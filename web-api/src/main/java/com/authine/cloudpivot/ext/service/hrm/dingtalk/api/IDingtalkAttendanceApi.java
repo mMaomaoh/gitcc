@@ -1,4 +1,4 @@
-package com.authine.cloudpivot.ext.service.dingtalk.api;
+package com.authine.cloudpivot.ext.service.hrm.dingtalk.api;
 
 import java.util.Map;
 

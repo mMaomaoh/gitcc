@@ -1,8 +1,8 @@
-package com.authine.cloudpivot.ext.service.dingtalk.impl;
+package com.authine.cloudpivot.ext.service.hrm.dingtalk.impl;
 
 import org.springframework.stereotype.Service;
 
-import com.authine.cloudpivot.ext.service.dingtalk.api.IDingtalkCommonApi;
+import com.authine.cloudpivot.ext.service.hrm.dingtalk.api.IDingtalkCommonApi;
 import com.dingtalk.api.DefaultDingTalkClient;
 import com.dingtalk.api.DingTalkClient;
 import com.dingtalk.api.request.OapiGettokenRequest;

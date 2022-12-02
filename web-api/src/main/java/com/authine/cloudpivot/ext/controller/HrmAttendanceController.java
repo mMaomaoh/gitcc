@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.authine.cloudpivot.engine.enums.ErrCode;
-import com.authine.cloudpivot.ext.service.api.IHrmAttendanceApi;
+import com.authine.cloudpivot.ext.service.hrm.api.IHrmAttendanceApi;
 import com.authine.cloudpivot.web.api.controller.base.BaseController;
 import com.authine.cloudpivot.web.api.view.ResponseResult;
 
@@ -44,18 +44,56 @@ public class HrmAttendanceController extends BaseController {
      * @return
      * @throws Exception
      */
-    @ApiOperation(value = "获取钉钉打卡结果")
+    @ApiOperation(value = "获取考勤明细")
     @PostMapping("/getRecordList")
     @ResponseBody
     public ResponseResult<Map<String, Object>> getRecordList(@RequestBody Map<String, Object> params) throws Exception {
-        log.info("[人事系统-考勤]：controller获取钉钉打卡结果开始， params={}", params);
+        log.info("[人事系统-考勤]：获取获取考勤明细开始， params={}", params);
 
         String corpId = (String)params.get("corpId");
+        String schemaCode = (String)params.get("schemaCode");
         if (StringUtils.isBlank(corpId)) {
             return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "corpId不能为空");
         }
+        if (StringUtils.isBlank(schemaCode)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "schemaCode不能为空");
+        }
 
-        ResponseResult<Map<String, Object>> result = hrmAttendanceApi.getAttendanceList(params);
+        ResponseResult<Map<String, Object>> result = hrmAttendanceApi.getAttendanceRecord(params);
+        log.info("[人事系统-考勤]：获取获取考勤明细结束...");
+        return result;
+    }
+
+    /**
+     * 加班申请数据统计
+     * 
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @ApiOperation(value = "加班申请更新调休及考勤汇总")
+    @PostMapping("/summaryOvertime")
+    @ResponseBody
+    public ResponseResult<Map<String, Object>> summaryOvertime(@RequestBody Map<String, Object> params)
+        throws Exception {
+        log.info("[人事系统-考勤]：加班申请更新调休及考勤汇总开始， params={}", params);
+
+        String objectId = (String)params.get("objectId");
+        String sc_jb = (String)params.get("sc_jb");
+        String sc_tx = (String)params.get("sc_tx");
+        String sc_kqhz = (String)params.get("sc_kqhz");
+        if (StringUtils.isBlank(sc_jb)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "schemaCode不能为空");
+        }
+        if (StringUtils.isBlank(sc_tx)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "schemaCode1不能为空");
+        }
+        if (StringUtils.isBlank(objectId)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "objectId不能为空");
+        }
+
+        ResponseResult<Map<String, Object>> result = hrmAttendanceApi.summaryOvertime(params);
+        log.info("[人事系统-考勤]：加班申请更新调休及考勤汇总结束...");
         return result;
     }
 

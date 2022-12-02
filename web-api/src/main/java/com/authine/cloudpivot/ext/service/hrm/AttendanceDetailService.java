@@ -1,4 +1,4 @@
-package com.authine.cloudpivot.ext.service.impl;
+package com.authine.cloudpivot.ext.service.hrm;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,12 +16,11 @@ import com.authine.cloudpivot.engine.api.model.runtime.BizObjectModel;
 import com.authine.cloudpivot.engine.api.model.system.RelatedCorpSettingModel;
 import com.authine.cloudpivot.engine.enums.ErrCode;
 import com.authine.cloudpivot.engine.enums.type.UserWorkStatus;
-import com.authine.cloudpivot.ext.model.AttendanceDetailsModel;
-import com.authine.cloudpivot.ext.service.api.IHrmAttendanceApi;
-import com.authine.cloudpivot.ext.service.dingtalk.api.IDingtalkAttendanceApi;
-import com.authine.cloudpivot.ext.service.dingtalk.api.IDingtalkCommonApi;
+import com.authine.cloudpivot.ext.model.hrm.AttendanceDetailModel;
+import com.authine.cloudpivot.ext.service.BaseCommonService;
+import com.authine.cloudpivot.ext.service.hrm.dingtalk.api.IDingtalkAttendanceApi;
+import com.authine.cloudpivot.ext.service.hrm.dingtalk.api.IDingtalkCommonApi;
 import com.authine.cloudpivot.ext.util.ResponseResultUtils;
-import com.authine.cloudpivot.web.api.service.EngineService;
 import com.authine.cloudpivot.web.api.view.ResponseResult;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -29,29 +28,26 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 人事考勤模块，获取考勤打卡数据
+ * 考勤明细
  * 
  * @author quyw
- * @date 2022/11/25
+ * @date 2022/12/02
  */
 @Service
 @Slf4j
-public class HrmAttendanceServiceImpl extends EngineService implements IHrmAttendanceApi {
+public class AttendanceDetailService extends BaseCommonService {
 
     @Autowired
     private IDingtalkCommonApi dingtalkCommonApi;
     @Autowired
     private IDingtalkAttendanceApi dingtalkAttendanceApi;
 
-    @Autowired
-    private EngineService engineService;
-
-    @Override
-    public ResponseResult<Map<String, Object>> getAttendanceList(Map<String, Object> params) {
-        log.info("[人事系统-考勤]：获取考勤打卡结果开始，params={}", params);
+    public ResponseResult<Map<String, Object>> getAttendanceRecord(Map<String, Object> params) {
+        log.info("[人事系统-考勤]：生成考勤明细开始，params={}", params);
 
         try {
             String corpId = (String)params.get("corpId");
+            String schemaCode = (String)params.get("schemaCode");
             // 按天查询考勤，接口传参格式“yyyy-MM-dd”
             String startTime = (String)params.get("startTime");
             if (StringUtils.isBlank(startTime)) {
@@ -110,41 +106,74 @@ public class HrmAttendanceServiceImpl extends EngineService implements IHrmAtten
                     }
                 }
             }
-
             // 开始封装调用钉钉接口获取考勤明细数据
             List<Object> recordList = Lists.newArrayList();
-            Map<String, Object> paramsMap = Maps.newHashMap();
-            paramsMap.put("accessToken", accessToken);
-            paramsMap.put("workDateFrom", startTime);
-            paramsMap.put("workDateTo", startTime);
+            Map<String, Object> map = Maps.newHashMap();
+            map.put("accessToken", accessToken);
+            map.put("workDateFrom", startTime);
+            map.put("workDateTo", startTime);
             for (int i = 0; i < userIdList.size(); i++) {
                 long offset = 0l;
                 long limit = 50l;
-                paramsMap.put("UserIdList", userIdList.get(i));
-                paramsMap.put("offset", offset);
-                paramsMap.put("limit", limit);
+                map.put("UserIdList", userIdList.get(i));
+                map.put("offset", offset);
+                map.put("limit", limit);
                 // 继续查询
-                recordList = getAttendanceRecord(recordList, paramsMap);
+                recordList = getDingtalkAttendanceRecord(recordList, map);
             }
-            // 开始写入到业务模块对应表
             if (CollectionUtils.isEmpty(recordList)) {
                 throw new Exception("未查询到考勤数据");
             }
-            insertFormData(recordList, userMap, startTime);
+
+            /* 
+             * 开始写入考勤明细
+             */
+            List<Map<String, Object>> insertData = buildRecordList(recordList, userMap, startTime);
+            for (int i = 0; i < insertData.size(); i++) {
+                Map<String, Object> dataMap = insertData.get(i);
+                String orgUserId = (String)dataMap.get(AttendanceDetailModel.org_userName);
+                // 未查询到考勤数据的用户统一设置为未打卡
+                Integer countQk = (Integer)dataMap.get(AttendanceDetailModel.countWeiDaKa);
+                String timeResult = (String)dataMap.get(AttendanceDetailModel.timeResult);
+                if (StringUtils.isBlank(timeResult)) {
+                    dataMap.put(AttendanceDetailModel.timeResult, "未打卡");
+                    countQk = countQk + 1;
+                }
+                String timeResult1 = (String)dataMap.get(AttendanceDetailModel.timeResult1);
+                if (StringUtils.isBlank(timeResult1)) {
+                    dataMap.put(AttendanceDetailModel.timeResult1, "未打卡");
+                    countQk = countQk + 1;
+                }
+                dataMap.put(AttendanceDetailModel.countWeiDaKa, countQk);
+                // 当天两次未打卡出勤天数为0
+                if (2 == countQk) {
+                    dataMap.put(AttendanceDetailModel.workDays, 0);
+                }
+                // 考勤时间
+                dataMap.put(AttendanceDetailModel.attendanceTime,
+                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(startTime));
+                // 考勤归属月份，系统年月存储格式为固定每月1号
+                dataMap.put(AttendanceDetailModel.kaoQinMonth, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                    .parse(startTime.split("-")[0] + "-" + startTime.split("-")[1] + "-01 00:00:00"));
+
+                BizObjectModel model = new BizObjectModel(schemaCode, dataMap, false);
+                String result = engineService.getBizObjectFacade().saveBizObject(orgUserId, model, true);
+            }
+
+            log.info("[人事系统-考勤]：生成考勤明细结束");
+            return ResponseResultUtils.getOkResponseResult(null, "操作成功");
         } catch (Exception e) {
-            log.error("[人事系统-考勤]：获取考勤打卡结果失败：{}", e.toString());
+            log.error("[人事系统-考勤]：生成考勤明细异常：{}", e.toString());
             e.printStackTrace();
             return ResponseResultUtils.getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), e.getMessage());
         }
-
-        log.info("[人事系统-考勤]：获取考勤打卡结果结束");
-        return ResponseResultUtils.getOkResponseResult(null, "操作成功");
     }
 
     /**
      * 分页场景下，递归取数据
      */
-    private List<Object> getAttendanceRecord(List<Object> recordResult, Map<String, Object> params) throws Exception {
+    private List<Object> getDingtalkAttendanceRecord(List<Object> recordResult, Map<String, Object> params)
+        throws Exception {
         long offset = (long)params.get("offset");
         long limit = (long)params.get("limit");
         JSONObject response = dingtalkAttendanceApi.getAttendanceList(params);
@@ -158,154 +187,131 @@ public class HrmAttendanceServiceImpl extends EngineService implements IHrmAtten
         if (hasMore) {
             offset = offset + limit;
             params.put("offset", offset);
-            getAttendanceRecord(recordResult, params);
+            getDingtalkAttendanceRecord(recordResult, params);
         }
         return recordResult;
     }
 
     /**
-     * 数据写到考勤明细表
+     * 上下班考勤数据合并及其他逻辑处理
      */
-    private void insertFormData(List<Object> recordResult, Map<String, String[]> userMap, String startTime) {
-        Map<String, String> resultMap = Maps.newHashMap();
-        List<Map<String, Object>> insertData = Lists.newArrayList();
+    private List<Map<String, Object>> buildRecordList(List<Object> recordResult, Map<String, String[]> userMap,
+        String startTime) {
+        List<Map<String, Object>> resultMap = Lists.newArrayList();
         for (String duid : userMap.keySet()) {
             Map<String, Object> paramsMap = Maps.newHashMap();
 
             // 系统组织用户，人员单选，部门单选
             String orgUserId = userMap.get(duid)[0];
             String orgUserDeptId = userMap.get(duid)[1];
-            paramsMap.put(AttendanceDetailsModel.org_userName, orgUserId);
-            paramsMap.put(AttendanceDetailsModel.org_userDept, orgUserDeptId);
+            paramsMap.put(AttendanceDetailModel.org_userName, orgUserId);
+            paramsMap.put(AttendanceDetailModel.org_userDept, orgUserDeptId);
             // 钉钉用户Id
-            paramsMap.put(AttendanceDetailsModel.dingtalk_userId, duid);
-            // 考勤时间
-            paramsMap.put(AttendanceDetailsModel.attendanceTime, startTime);
-            paramsMap.put(AttendanceDetailsModel.countWeiDaKa, 0);
-            paramsMap.put(AttendanceDetailsModel.countChiDao, 0);
-            paramsMap.put(AttendanceDetailsModel.countZaoTui, 0);
+            paramsMap.put(AttendanceDetailModel.countWeiDaKa, 0);
+            paramsMap.put(AttendanceDetailModel.countChiDao, 0);
+            paramsMap.put(AttendanceDetailModel.countZaoTui, 0);
+            paramsMap.put(AttendanceDetailModel.workDays, 1);
+            paramsMap.put(AttendanceDetailModel.lateTimes, 0);
+            paramsMap.put(AttendanceDetailModel.earlyTimes, 0);
 
             // 上班下班打卡为两条数据，需要合并
             for (int j = 0; j < recordResult.size(); j++) {
                 JSONObject json = (JSONObject)recordResult.get(j);
                 String duid1 = json.getString("userId");
                 if (duid.equals(duid1)) {
-                    handleInsertData(paramsMap, json);
+                    buildDuty(paramsMap, json);
                 }
             }
-            insertData.add(paramsMap);
+            resultMap.add(paramsMap);
         }
-        /* 遍历待写入表单数据，匹配休假，外出，出差
-         * 无打卡数据的用户不匹配休假，外出，出差
-         */
-        for (int i = 0; i < insertData.size(); i++) {
-            Map<String, Object> dataMap = insertData.get(i);
-            String orgUserId = (String)dataMap.get(AttendanceDetailsModel.org_userName);
-            // 未查询到考勤数据的用户统一设置为未打卡
-            Integer countQk = (Integer)dataMap.get(AttendanceDetailsModel.countWeiDaKa);
-            String timeResult = (String)dataMap.get(AttendanceDetailsModel.timeResult);
-            if (StringUtils.isBlank(timeResult)) {
-                dataMap.put(AttendanceDetailsModel.timeResult, "未打卡");
-                countQk = countQk + 1;
-            }
-            String timeResult1 = (String)dataMap.get(AttendanceDetailsModel.timeResult1);
-            if (StringUtils.isBlank(timeResult1)) {
-                dataMap.put(AttendanceDetailsModel.timeResult1, "未打卡");
-                countQk = countQk + 1;
-            }
-            dataMap.put(AttendanceDetailsModel.countWeiDaKa, countQk);
-
-            BizObjectModel model = new BizObjectModel(AttendanceDetailsModel.SCHEMA_CODE, dataMap, false);
-            String result = engineService.getBizObjectFacade().saveBizObject(orgUserId, model, true);
-            resultMap.put(result, null);
-        }
+        return resultMap;
     }
 
-    private void handleInsertData(Map<String, Object> data, JSONObject json) {
+    private void buildDuty(Map<String, Object> data, JSONObject json) {
         String checkType = json.getString("checkType");
         // 上班OnDuty，下班OffDuty
         if ("OnDuty".equals(checkType)) {
             // 打卡时间
-            data.put(AttendanceDetailsModel.userCheckTime, new Date(json.getLongValue("userCheckTime")));
+            data.put(AttendanceDetailModel.userCheckTime, new Date(json.getLongValue("userCheckTime")));
             // 打卡位置
             String locationResult = json.getString("locationResult");
             if ("Normal".equals(locationResult)) {
-                data.put(AttendanceDetailsModel.locationResult, "范围内");
+                data.put(AttendanceDetailModel.locationResult, "范围内");
             } else if ("Outside".equals(locationResult)) {
-                data.put(AttendanceDetailsModel.locationResult, "范围外");
+                data.put(AttendanceDetailModel.locationResult, "范围外");
             } else if ("NotSigned".equals(locationResult)) {
-                data.put(AttendanceDetailsModel.locationResult, "未打卡");
-                data.put(AttendanceDetailsModel.userCheckTime, null);
+                data.put(AttendanceDetailModel.locationResult, "未打卡");
+                data.put(AttendanceDetailModel.userCheckTime, null);
             }
             // 打卡结果
             String timeResult = json.getString("timeResult");
             if ("Normal".equals(timeResult)) {
-                data.put(AttendanceDetailsModel.timeResult, "正常");
+                data.put(AttendanceDetailModel.timeResult, "正常");
             } else if ("Early".equals(timeResult)) {
-                data.put(AttendanceDetailsModel.timeResult, "早退");
+                data.put(AttendanceDetailModel.timeResult, "早退");
             } else if ("Late".equals(timeResult) || "SeriousLate".equals(timeResult)
                 || "Absenteeism".equals(timeResult)) {
                 // 迟到，严重迟到，旷工迟到都算迟到
-                data.put(AttendanceDetailsModel.timeResult, "迟到");
+                data.put(AttendanceDetailModel.timeResult, "迟到");
                 // 迟到时长
                 Long sum = json.getLongValue("userCheckTime") - json.getLongValue("baseCheckTime");
-                data.put(AttendanceDetailsModel.lateTimes, sum / 1000 / 60);
+                data.put(AttendanceDetailModel.lateTimes, sum / 1000 / 60);
                 // 迟到次数
-                Integer s = (Integer)data.get(AttendanceDetailsModel.countChiDao) + 1;
-                data.put(AttendanceDetailsModel.countChiDao, s);
+                Integer s = (Integer)data.get(AttendanceDetailModel.countChiDao) + 1;
+                data.put(AttendanceDetailModel.countChiDao, s);
             } else if ("NotSigned".equals(timeResult)) {
-                data.put(AttendanceDetailsModel.timeResult, "未打卡");
-                data.put(AttendanceDetailsModel.userCheckTime, null);
+                data.put(AttendanceDetailModel.timeResult, "未打卡");
+                data.put(AttendanceDetailModel.userCheckTime, null);
                 // 未打卡次数
-                Integer s = (Integer)data.get(AttendanceDetailsModel.countWeiDaKa) + 1;
-                data.put(AttendanceDetailsModel.countWeiDaKa, s);
+                Integer s = (Integer)data.get(AttendanceDetailModel.countWeiDaKa) + 1;
+                data.put(AttendanceDetailModel.countWeiDaKa, s);
             } else {
                 // 其他情况记为未打卡
-                data.put(AttendanceDetailsModel.timeResult, "未打卡");
-                data.put(AttendanceDetailsModel.userCheckTime, null);
-                Integer s = (Integer)data.get(AttendanceDetailsModel.countWeiDaKa) + 1;
-                data.put(AttendanceDetailsModel.countWeiDaKa, s);
+                data.put(AttendanceDetailModel.timeResult, "未打卡");
+                data.put(AttendanceDetailModel.userCheckTime, null);
+                Integer s = (Integer)data.get(AttendanceDetailModel.countWeiDaKa) + 1;
+                data.put(AttendanceDetailModel.countWeiDaKa, s);
             }
         } else if ("OffDuty".equals(checkType)) {
             // 打卡时间
-            data.put(AttendanceDetailsModel.userCheckTime1, new Date(json.getLongValue("userCheckTime")));
+            data.put(AttendanceDetailModel.userCheckTime1, new Date(json.getLongValue("userCheckTime")));
             // 打卡位置
             String locationResult = json.getString("locationResult");
             if ("Normal".equals(locationResult)) {
-                data.put(AttendanceDetailsModel.locationResult1, "范围内");
+                data.put(AttendanceDetailModel.locationResult1, "范围内");
             } else if ("Outside".equals(locationResult)) {
-                data.put(AttendanceDetailsModel.locationResult1, "范围外");
+                data.put(AttendanceDetailModel.locationResult1, "范围外");
             } else if ("NotSigned".equals(locationResult)) {
-                data.put(AttendanceDetailsModel.locationResult1, "未打卡");
+                data.put(AttendanceDetailModel.locationResult1, "未打卡");
             }
             // 打卡结果
             String timeResult = json.getString("timeResult");
             if ("Normal".equals(timeResult)) {
-                data.put(AttendanceDetailsModel.timeResult1, "正常");
+                data.put(AttendanceDetailModel.timeResult1, "正常");
             } else if ("Early".equals(timeResult)) {
-                data.put(AttendanceDetailsModel.timeResult1, "早退");
+                data.put(AttendanceDetailModel.timeResult1, "早退");
                 // 早退时长
                 Long sum = json.getLongValue("baseCheckTime") - json.getLongValue("userCheckTime");
-                data.put(AttendanceDetailsModel.earlyTimes, sum / 1000 / 60);
+                data.put(AttendanceDetailModel.earlyTimes, sum / 1000 / 60);
                 // 早退次数
-                Integer s = (Integer)data.get(AttendanceDetailsModel.countZaoTui) + 1;
-                data.put(AttendanceDetailsModel.countZaoTui, s);
+                Integer s = (Integer)data.get(AttendanceDetailModel.countZaoTui) + 1;
+                data.put(AttendanceDetailModel.countZaoTui, s);
             } else if ("Late".equals(timeResult) || "SeriousLate".equals(timeResult)
                 || "Absenteeism".equals(timeResult)) {
                 // 迟到，严重迟到，旷工迟到都算迟到
-                data.put(AttendanceDetailsModel.timeResult1, "迟到");
+                data.put(AttendanceDetailModel.timeResult1, "迟到");
             } else if ("NotSigned".equals(timeResult)) {
-                data.put(AttendanceDetailsModel.timeResult1, "未打卡");
-                data.put(AttendanceDetailsModel.userCheckTime1, null);
+                data.put(AttendanceDetailModel.timeResult1, "未打卡");
+                data.put(AttendanceDetailModel.userCheckTime1, null);
                 // 未打卡次数
-                Integer s = (Integer)data.get(AttendanceDetailsModel.countWeiDaKa) + 1;
-                data.put(AttendanceDetailsModel.countWeiDaKa, s);
+                Integer s = (Integer)data.get(AttendanceDetailModel.countWeiDaKa) + 1;
+                data.put(AttendanceDetailModel.countWeiDaKa, s);
             } else {
                 // 其他情况记为未打卡
-                data.put(AttendanceDetailsModel.timeResult1, "未打卡");
-                data.put(AttendanceDetailsModel.userCheckTime, null);
-                Integer s = (Integer)data.get(AttendanceDetailsModel.countWeiDaKa) + 1;
-                data.put(AttendanceDetailsModel.countWeiDaKa, s);
+                data.put(AttendanceDetailModel.timeResult1, "未打卡");
+                data.put(AttendanceDetailModel.userCheckTime, null);
+                Integer s = (Integer)data.get(AttendanceDetailModel.countWeiDaKa) + 1;
+                data.put(AttendanceDetailModel.countWeiDaKa, s);
             }
         }
     }
