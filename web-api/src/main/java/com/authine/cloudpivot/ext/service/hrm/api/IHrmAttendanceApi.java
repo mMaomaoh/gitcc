@@ -22,4 +22,12 @@ public interface IHrmAttendanceApi {
      */
     ResponseResult<Map<String, Object>> summaryOvertime(Map<String, Object> params);
 
+    /**
+     * 有薪假申请更新有薪假汇总
+     * 
+     * @param params
+     * @return
+     */
+    ResponseResult<Map<String, Object>> summaryYouXinJia(Map<String, Object> params);
+
 }

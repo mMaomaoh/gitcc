@@ -80,7 +80,7 @@ public class AttendanceDetailService extends BaseCommonService {
                 UserModel m1 = userModelList.get(k);
                 // 过滤掉离职员工，但不包括当天离职的
                 UserWorkStatus status = m1.getUserWorkStatus();
-                if (!UserWorkStatus.WAITING_TRANSFER.equals(status)) {
+                if (!UserWorkStatus.WAITING_TRANSFER.equals(status) && !UserWorkStatus.DIMISSION.equals(status)) {
                     String uid1 = m1.getUserId();
                     userIds.add(uid1);
                     userMap.put(uid1, new String[] {m1.getId(), m1.getDepartmentId()});

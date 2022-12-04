@@ -82,18 +82,56 @@ public class HrmAttendanceController extends BaseController {
         String sc_jb = (String)params.get("sc_jb");
         String sc_tx = (String)params.get("sc_tx");
         String sc_kqhz = (String)params.get("sc_kqhz");
+        // 流程生效=AVAILABLE，流程作废=CANCEL，数据删除=DELETE
+        String opt = (String)params.get("opt");
         if (StringUtils.isBlank(sc_jb)) {
-            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "schemaCode不能为空");
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "sc_jb不能为空");
         }
         if (StringUtils.isBlank(sc_tx)) {
-            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "schemaCode1不能为空");
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "sc_tx不能为空");
+        }
+        if (StringUtils.isBlank(sc_kqhz)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "sc_kqhz不能为空");
         }
         if (StringUtils.isBlank(objectId)) {
             return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "objectId不能为空");
         }
+        if (StringUtils.isBlank(opt)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "opt不能为空");
+        }
 
         ResponseResult<Map<String, Object>> result = hrmAttendanceApi.summaryOvertime(params);
         log.info("[人事系统-考勤]：加班申请更新调休及考勤汇总结束...");
+        return result;
+    }
+
+    @ApiOperation(value = "有薪假申请更新有薪假汇总")
+    @PostMapping("/summaryYouXinJia")
+    @ResponseBody
+    public ResponseResult<Map<String, Object>> summaryYouXinJia(@RequestBody Map<String, Object> params)
+        throws Exception {
+        log.info("[人事系统-考勤]：有薪假申请更新有薪假汇总开始， params={}", params);
+
+        String objectId = (String)params.get("objectId");
+        String sc_yxjsq = (String)params.get("sc_yxjsq");
+        String sc_yxjhz = (String)params.get("sc_yxjhz");
+        // 流程生效=AVAILABLE，流程作废=CANCEL，数据删除=DELETE
+        String opt = (String)params.get("opt");
+        if (StringUtils.isBlank(sc_yxjsq)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "sc_yxjsq不能为空");
+        }
+        if (StringUtils.isBlank(sc_yxjhz)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "sc_yxjhz不能为空");
+        }
+        if (StringUtils.isBlank(objectId)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "objectId不能为空");
+        }
+        if (StringUtils.isBlank(opt)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "opt不能为空");
+        }
+
+        ResponseResult<Map<String, Object>> result = hrmAttendanceApi.summaryYouXinJia(params);
+        log.info("[人事系统-考勤]：有薪假申请更新有薪假汇总结束...");
         return result;
     }
 
