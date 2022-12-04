@@ -30,4 +30,12 @@ public interface IHrmAttendanceApi {
      */
     ResponseResult<Map<String, Object>> summaryYouXinJia(Map<String, Object> params);
 
+    /**
+     * 休假数据统计到考勤汇总
+     * 
+     * @param params
+     * @return
+     */
+    ResponseResult<Map<String, Object>> summaryLeave(Map<String, Object> params);
+
 }

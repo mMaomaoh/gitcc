@@ -135,4 +135,37 @@ public class HrmAttendanceController extends BaseController {
         return result;
     }
 
+    @ApiOperation(value = "休假数据统计到考勤汇总")
+    @PostMapping("/summaryLeave")
+    @ResponseBody
+    public ResponseResult<Map<String, Object>> summaryLeave(@RequestBody Map<String, Object> params) throws Exception {
+        log.info("[人事系统-考勤]：休假数据统计到考勤汇总开始， params={}", params);
+
+        String objectId = (String)params.get("objectId");
+        String sc_xjsq = (String)params.get("sc_xjsq");
+        String sc_xjsq_sheet = (String)params.get("sc_xjsq_sheet");
+        String sc_kqhz = (String)params.get("sc_kqhz");
+        // 流程生效=AVAILABLE，流程作废=CANCEL，数据删除=DELETE
+        String opt = (String)params.get("opt");
+        if (StringUtils.isBlank(sc_xjsq)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "sc_xjsq不能为空");
+        }
+        if (StringUtils.isBlank(sc_xjsq_sheet)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "sc_xjsq_sheet不能为空");
+        }
+        if (StringUtils.isBlank(sc_kqhz)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "sc_kqhz不能为空");
+        }
+        if (StringUtils.isBlank(objectId)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "objectId不能为空");
+        }
+        if (StringUtils.isBlank(opt)) {
+            return getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "opt不能为空");
+        }
+
+        ResponseResult<Map<String, Object>> result = hrmAttendanceApi.summaryLeave(params);
+        log.info("[人事系统-考勤]：休假数据统计到考勤汇总结束...");
+        return result;
+    }
+
 }

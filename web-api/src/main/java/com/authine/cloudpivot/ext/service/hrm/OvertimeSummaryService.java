@@ -87,22 +87,21 @@ public class OvertimeSummaryService extends BaseCommonService {
                 throw new Exception("查询结果异常");
             }
             Map<String, Object> formDataMap = formDataList.get(0).getData();
-            LocalDateTime yearMonth = ((Timestamp)formDataMap.get(OvertimeApplyModel.yearMonth)).toLocalDateTime();
-            double timeLength = ((BigDecimal)formDataMap.get(OvertimeApplyModel.timeLength)).doubleValue();
-            List<SelectionValue> userList = (List<SelectionValue>)formDataMap.get(OvertimeApplyModel.jiaBanRen);
-
-            String jiaBanType = (String)formDataMap.get(OvertimeApplyModel.jiaBanType);
-            String jieSuanType = (String)formDataMap.get(OvertimeApplyModel.jieSuanType);
-
-            String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
-            String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
 
             // 如果已经作废了流程，删除数据则不更新汇总
+            String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
+            String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
             if (OPT_DELETE.equals(opt)) {
                 if (StringUtils.isNotBlank(workflowInstanceId) && "CANCELED".equals(sequenceStatus)) {
                     return ResponseResultUtils.getOkResponseResult(null, "操作成功");
                 }
             }
+
+            LocalDateTime yearMonth = ((Timestamp)formDataMap.get(OvertimeApplyModel.yearMonth)).toLocalDateTime();
+            double timeLength = ((BigDecimal)formDataMap.get(OvertimeApplyModel.timeLength)).doubleValue();
+            List<SelectionValue> userList = (List<SelectionValue>)formDataMap.get(OvertimeApplyModel.jiaBanRen);
+            String jiaBanType = (String)formDataMap.get(OvertimeApplyModel.jiaBanType);
+            String jieSuanType = (String)formDataMap.get(OvertimeApplyModel.jieSuanType);
 
             /*
              * 2、生成调休汇总
@@ -127,12 +126,6 @@ public class OvertimeSummaryService extends BaseCommonService {
 
                 // 更新到考勤汇总
                 Map<String, Double> attDataMap = Maps.newHashMap();
-                attDataMap.put(AttendanceSummaryModel.gongZuoRiJiaBan, (double)0);
-                attDataMap.put(AttendanceSummaryModel.xiuXiRiJiaBan, (double)0);
-                attDataMap.put(AttendanceSummaryModel.jieJiaRiJiaBan, (double)0);
-                attDataMap.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, (double)0);
-                attDataMap.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, (double)0);
-                attDataMap.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, (double)0);
                 if (JIABAN_TYPE_1.equals(jiaBanType)) {
                     attDataMap.put(AttendanceSummaryModel.gongZuoRiJiaBan, timeLength);
                 } else if (JIABAN_TYPE_2.equals(jiaBanType)) {
@@ -193,6 +186,10 @@ public class OvertimeSummaryService extends BaseCommonService {
 
         Map<String, Object> tableData = Maps.newHashMap();
         if (CollectionUtils.isEmpty(formDataList)) {
+            if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
+                // 删除数据，作废流程不触发新增
+                return null;
+            }
             tableData.put(OvertimeSummaryModel.userName, orgUserId);
             tableData.put(OvertimeSummaryModel.userDept, orgUserDept);
             tableData.put(OvertimeSummaryModel.years, years);
@@ -237,6 +234,7 @@ public class OvertimeSummaryService extends BaseCommonService {
         Map<String, Object> tableData = Maps.newHashMap();
         if (CollectionUtils.isEmpty(formDataList)) {
             // 新增数据
+            tableData.putAll(attendanceSummaryService.initTableData());
             tableData.putAll(data);
             tableData.put(AttendanceSummaryModel.userName, orgUserId);
             tableData.put(AttendanceSummaryModel.userDept, orgUserDept);

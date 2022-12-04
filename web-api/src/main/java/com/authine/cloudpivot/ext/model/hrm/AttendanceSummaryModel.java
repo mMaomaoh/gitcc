@@ -11,6 +11,9 @@ public class AttendanceSummaryModel {
     public static final String kaoQinYue = "kaoQinYue"; // 考勤月份
     public static final String userName = "userName"; // 姓名
     public static final String userDept = "userDept"; // 部门
+
+    public static final String countQingJiaTimes = "countQingJiaTimes";
+
     public static final String realWorkDays = "realWorkDays"; // 实际出勤（天）
     public static final String shouldWorkDays = "shouldWorkDays"; // 应出勤（天）
     public static final String queKaShu = "queKaShu"; // 缺卡次数
@@ -18,12 +21,13 @@ public class AttendanceSummaryModel {
     public static final String chiDaoTimes = "chiDaoTimes"; // 迟到时长（分钟）
     public static final String zaoTuiShu = "zaoTuiShu"; // 早退次数
     public static final String zaoTuiTimes = "zaoTuiTimes"; // 早退时长（分钟）
+
     public static final String shiJia = "shiJia"; // 请假-事假（天）
     public static final String bingJia = "bingJia"; // 请假-病假（天）
     public static final String hunJia = "hunJia"; // 请假-婚假（天）
     public static final String sangJia = "sangJia"; // 请假-丧假（天）
     public static final String chanJia = "chanJia"; // 请假-产假（天）
-    public static final String chanJian = "chanJian"; // 请假-产检假（天）
+    public static final String chanJianJia = "chanJian"; // 请假-产检假（天）
     public static final String peiChanJia = "peiChanJia"; // 请假-陪产假（天）
     public static final String tiaoXiu = "tiaoXiu"; // 请假-调休（天）
     public static final String youxXinJia = "youxXinJia"; // 请假-有薪假（天）

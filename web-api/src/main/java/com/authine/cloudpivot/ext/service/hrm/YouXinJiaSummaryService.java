@@ -69,19 +69,19 @@ public class YouXinJiaSummaryService extends BaseCommonService {
                 throw new Exception("查询结果异常");
             }
             Map<String, Object> formDataMap = formDataList.get(0).getData();
-            LocalDateTime years = ((Timestamp)formDataMap.get(YouXinJiaApplyModel.years)).toLocalDateTime();
-            double timeLength = ((BigDecimal)formDataMap.get(YouXinJiaApplyModel.timeLength)).doubleValue();
-            List<SelectionValue> userList = (List<SelectionValue>)formDataMap.get(YouXinJiaApplyModel.leaveUser);
-
-            String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
-            String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
 
             // 如果已经作废了流程，删除数据则不更新汇总
+            String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
+            String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
             if (OPT_DELETE.equals(opt)) {
                 if (StringUtils.isNotBlank(workflowInstanceId) && "CANCELED".equals(sequenceStatus)) {
                     return ResponseResultUtils.getOkResponseResult(null, "操作成功");
                 }
             }
+
+            LocalDateTime years = ((Timestamp)formDataMap.get(YouXinJiaApplyModel.years)).toLocalDateTime();
+            double timeLength = ((BigDecimal)formDataMap.get(YouXinJiaApplyModel.timeLength)).doubleValue();
+            List<SelectionValue> userList = (List<SelectionValue>)formDataMap.get(YouXinJiaApplyModel.leaveUser);
 
             /*
              * 2、更新到薪假汇总
@@ -130,6 +130,10 @@ public class YouXinJiaSummaryService extends BaseCommonService {
 
         Map<String, Object> tableData = Maps.newHashMap();
         if (CollectionUtils.isEmpty(formDataList)) {
+            if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
+                // 删除数据，作废流程不触发新增
+                return null;
+            }
             tableData.put(YouXinJiaSummaryModel.userName, orgUserId);
             tableData.put(YouXinJiaSummaryModel.userDept, orgUserDept);
             tableData.put(YouXinJiaSummaryModel.years, Timestamp.valueOf(years));
