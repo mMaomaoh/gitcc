@@ -16,6 +16,7 @@ import com.authine.cloudpivot.engine.api.model.runtime.BizObjectModel;
 import com.authine.cloudpivot.engine.api.model.runtime.SelectionValue;
 import com.authine.cloudpivot.engine.component.query.api.FilterExpression;
 import com.authine.cloudpivot.engine.enums.ErrCode;
+import com.authine.cloudpivot.ext.constant.BusRuleOptConstants;
 import com.authine.cloudpivot.ext.model.ExtBaseModel;
 import com.authine.cloudpivot.ext.model.hrm.OvertimeSummaryModel;
 import com.authine.cloudpivot.ext.model.hrm.YouXinJiaApplyModel;
@@ -38,10 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class YouXinJiaSummaryService extends BaseCommonService {
 
-    private static final String OPT_AVAILABLE = "AVAILABLE";
-    private static final String OPT_CANCEL = "CANCEL";
-    private static final String OPT_DELETE = "DELETE";
-
     public ResponseResult<Map<String, Object>> summaryYouXinJia(Map<String, Object> params) {
         log.info("[人事系统-考勤]：有薪假申请更新有薪假汇总开始，params={}", params);
         try {
@@ -51,7 +48,7 @@ public class YouXinJiaSummaryService extends BaseCommonService {
             String opt = (String)params.get("opt");
 
             /*
-             * 1、薪假申请表单数据
+             * 1、有薪假申请表单数据
              */
             List<String> columns = Lists.newArrayList();
             columns.add(ExtBaseModel.id);
@@ -74,7 +71,7 @@ public class YouXinJiaSummaryService extends BaseCommonService {
             // 如果已经作废了流程，删除数据则不更新汇总，进行中的流程删除也不触发更新汇总
             String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
             String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
-            if (OPT_DELETE.equals(opt)) {
+            if (BusRuleOptConstants.OPT_DELETE.equals(opt)) {
                 if (StringUtils.isNotBlank(workflowInstanceId)) {
                     if ("CANCELED".equals(sequenceStatus) || "PROCESSING".equals(sequenceStatus)) {
                         return ResponseResultUtils.getOkResponseResult(null, "操作成功");
@@ -142,7 +139,7 @@ public class YouXinJiaSummaryService extends BaseCommonService {
 
         Map<String, Object> tableData = Maps.newHashMap();
         if (MapUtils.isEmpty(formDataMap)) {
-            if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
+            if (BusRuleOptConstants.OPT_DELETE.equals(opt) || BusRuleOptConstants.OPT_CANCEL.equals(opt)) {
                 // 删除数据，作废流程不触发新增
                 return null;
             }
@@ -153,9 +150,9 @@ public class YouXinJiaSummaryService extends BaseCommonService {
         } else {
             double d = ((BigDecimal)formDataMap.get(YouXinJiaSummaryModel.repaidTimesRemainder)).doubleValue();
             tableData.putAll(formDataMap);
-            if (OPT_AVAILABLE.equals(opt)) {
+            if (BusRuleOptConstants.OPT_AVAILABLE.equals(opt)) {
                 tableData.put(YouXinJiaSummaryModel.repaidTimesRemainder, timeLength + d);
-            } else if (OPT_CANCEL.equals(opt) || OPT_DELETE.equals(opt)) {
+            } else if (BusRuleOptConstants.OPT_CANCEL.equals(opt) || BusRuleOptConstants.OPT_DELETE.equals(opt)) {
                 tableData.put(YouXinJiaSummaryModel.repaidTimesRemainder, d - timeLength);
             }
         }

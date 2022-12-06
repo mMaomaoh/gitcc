@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.authine.cloudpivot.ext.service.hrm.AttendanceDetailService;
+import com.authine.cloudpivot.ext.service.hrm.BusinessTripSummaryService;
 import com.authine.cloudpivot.ext.service.hrm.LeaveSummaryService;
 import com.authine.cloudpivot.ext.service.hrm.OvertimeSummaryService;
 import com.authine.cloudpivot.ext.service.hrm.YouXinJiaSummaryService;
@@ -29,6 +30,8 @@ public class HrmAttendanceServiceImpl implements IHrmAttendanceApi {
     private YouXinJiaSummaryService youXinJiaSummaryService;
     @Autowired
     private LeaveSummaryService leaveSummaryService;
+    @Autowired
+    private BusinessTripSummaryService businessTripSummaryService;
 
     @Override
     public ResponseResult<Map<String, Object>> getAttendanceRecord(Map<String, Object> params) {
@@ -48,6 +51,11 @@ public class HrmAttendanceServiceImpl implements IHrmAttendanceApi {
     @Override
     public ResponseResult<Map<String, Object>> summaryLeave(Map<String, Object> params) {
         return leaveSummaryService.summaryLeave(params);
+    }
+
+    @Override
+    public ResponseResult<Map<String, Object>> summaryBusinessTrip(Map<String, Object> params) {
+        return businessTripSummaryService.summaryBusinessTrip(params);
     }
 
 }

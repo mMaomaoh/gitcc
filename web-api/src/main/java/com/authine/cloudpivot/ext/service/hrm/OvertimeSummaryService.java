@@ -20,6 +20,7 @@ import com.authine.cloudpivot.engine.api.model.runtime.BizObjectModel;
 import com.authine.cloudpivot.engine.api.model.runtime.SelectionValue;
 import com.authine.cloudpivot.engine.component.query.api.FilterExpression;
 import com.authine.cloudpivot.engine.enums.ErrCode;
+import com.authine.cloudpivot.ext.constant.BusRuleOptConstants;
 import com.authine.cloudpivot.ext.model.ExtBaseModel;
 import com.authine.cloudpivot.ext.model.hrm.AttendanceSummaryModel;
 import com.authine.cloudpivot.ext.model.hrm.OvertimeApplyModel;
@@ -45,10 +46,6 @@ public class OvertimeSummaryService extends BaseCommonService {
 
     @Autowired
     private AttendanceSummaryService attendanceSummaryService;
-
-    private static final String OPT_AVAILABLE = "AVAILABLE";
-    private static final String OPT_CANCEL = "CANCEL";
-    private static final String OPT_DELETE = "DELETE";
 
     private static final String JIABAN_TYPE_1 = "工作日加班";
     private static final String JIABAN_TYPE_2 = "休息日加班";
@@ -92,7 +89,7 @@ public class OvertimeSummaryService extends BaseCommonService {
             // 如果已经作废了流程，删除数据则不更新汇总，进行中的流程删除也不触发更新汇总
             String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
             String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
-            if (OPT_DELETE.equals(opt)) {
+            if (BusRuleOptConstants.OPT_DELETE.equals(opt)) {
                 if (StringUtils.isNotBlank(workflowInstanceId)) {
                     if ("CANCELED".equals(sequenceStatus) || "PROCESSING".equals(sequenceStatus)) {
                         return ResponseResultUtils.getOkResponseResult(null, "操作成功");
@@ -124,7 +121,14 @@ public class OvertimeSummaryService extends BaseCommonService {
 
                 // 更新到调休汇总
                 if (JIESUAN_TYPE_1.equals(jieSuanType)) {
-                    updateTiaoXiuSummary(opt, sc_tx, uid, userDept, yearMonth, timeLength);
+                    Map<String, Object> txSummaryMap = Maps.newHashMap();
+                    txSummaryMap.put("schemaCode", sc_tx);
+                    txSummaryMap.put("yearMonth", yearMonth);
+                    txSummaryMap.put("userId", uid);
+                    txSummaryMap.put("userDept", userDept);
+                    txSummaryMap.put("timeLength", timeLength);
+                    txSummaryMap.put("opt", opt);
+                    updateTiaoXiuSummary(txSummaryMap);
                 }
 
                 // 更新到考勤汇总
@@ -149,13 +153,16 @@ public class OvertimeSummaryService extends BaseCommonService {
         }
     }
 
-    private String updateTiaoXiuSummary(String opt, String schemaCode, String orgUserId, String orgUserDept,
-        LocalDateTime yearsMonth, double timeLength) throws Exception {
+    private String updateTiaoXiuSummary(Map<String, Object> params) throws Exception {
+        String opt = (String)params.get("opt");
+        String schemaCode = (String)params.get("schemaCode");
+        LocalDateTime yearMonth = (LocalDateTime)params.get("yearMonth");
+        String orgUserId = (String)params.get("userId");
+        String orgUserDept = (String)params.get("userDept");
+        double timeLength = (double)params.get("timeLength");
 
         // 请假申请为年月格式，调休按年统计
-        // String yearStr = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(yearsMonth);
-        String yearStr = yearsMonth.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
+        String yearStr = yearMonth.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         Date years = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
             .parse(yearStr.split("-")[0] + "-" + yearStr.split("-")[1] + "-01 00:00:00");
 
@@ -184,7 +191,7 @@ public class OvertimeSummaryService extends BaseCommonService {
 
         Map<String, Object> tableData = Maps.newHashMap();
         if (MapUtils.isEmpty(formDataMap)) {
-            if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
+            if (BusRuleOptConstants.OPT_DELETE.equals(opt) || BusRuleOptConstants.OPT_CANCEL.equals(opt)) {
                 // 删除数据，作废流程不触发新增
                 return null;
             }
@@ -195,9 +202,9 @@ public class OvertimeSummaryService extends BaseCommonService {
         } else {
             tableData.putAll(formDataMap);
             double d = ((BigDecimal)formDataMap.get(OvertimeSummaryModel.workTimesRemainder)).doubleValue();
-            if (OPT_AVAILABLE.equals(opt)) {
+            if (BusRuleOptConstants.OPT_AVAILABLE.equals(opt)) {
                 tableData.put(OvertimeSummaryModel.workTimesRemainder, d + timeLength);
-            } else if (OPT_CANCEL.equals(opt) || OPT_DELETE.equals(opt)) {
+            } else if (BusRuleOptConstants.OPT_CANCEL.equals(opt) || BusRuleOptConstants.OPT_DELETE.equals(opt)) {
                 tableData.put(OvertimeSummaryModel.workTimesRemainder, d - timeLength);
             }
         }
@@ -238,16 +245,16 @@ public class OvertimeSummaryService extends BaseCommonService {
         // 新增或更新数据
         Map<String, Object> tableData = Maps.newHashMap();
         if (MapUtils.isEmpty(formDataMap)) {
-            if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
+            if (BusRuleOptConstants.OPT_DELETE.equals(opt) || BusRuleOptConstants.OPT_CANCEL.equals(opt)) {
                 // 删除数据，作废流程不触发新增
                 return null;
             }
             tableData.putAll(attendanceSummaryService.initTableData());
-
+            // init
             tableData.put(AttendanceSummaryModel.userName, orgUserId);
             tableData.put(AttendanceSummaryModel.userDept, orgUserDept);
             tableData.put(AttendanceSummaryModel.kaoQinYue, Timestamp.valueOf(yearMonth));
-
+            // 按类型赋值
             if (JIABAN_TYPE_1.equals(jiaBanType)) {
                 tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, timeLength);
             } else if (JIABAN_TYPE_2.equals(jiaBanType)) {
@@ -278,7 +285,7 @@ public class OvertimeSummaryService extends BaseCommonService {
             double jieSuanQiTaJiaBan =
                 ((BigDecimal)formDataMap.get(AttendanceSummaryModel.jieSuanQiTaJiaBan)).doubleValue();
 
-            if (OPT_AVAILABLE.equals(opt)) {
+            if (BusRuleOptConstants.OPT_AVAILABLE.equals(opt)) {
                 if (JIABAN_TYPE_1.equals(jiaBanType)) {
                     tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, gongZuoRiJiaBan + timeLength);
                 } else if (JIABAN_TYPE_2.equals(jiaBanType)) {
@@ -293,7 +300,7 @@ public class OvertimeSummaryService extends BaseCommonService {
                 } else if (JIESUAN_TYPE_3.equals(jieSuanType)) {
                     tableData.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, jieSuanQiTaJiaBan + timeLength);
                 }
-            } else if (OPT_CANCEL.equals(opt) || OPT_DELETE.equals(opt)) {
+            } else if (BusRuleOptConstants.OPT_CANCEL.equals(opt) || BusRuleOptConstants.OPT_DELETE.equals(opt)) {
                 if (JIABAN_TYPE_1.equals(jiaBanType)) {
                     tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, gongZuoRiJiaBan - timeLength);
                 } else if (JIABAN_TYPE_2.equals(jiaBanType)) {

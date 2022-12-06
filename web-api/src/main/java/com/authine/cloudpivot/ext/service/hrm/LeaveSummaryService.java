@@ -20,6 +20,7 @@ import com.authine.cloudpivot.engine.api.model.runtime.BizObjectModel;
 import com.authine.cloudpivot.engine.api.model.runtime.SelectionValue;
 import com.authine.cloudpivot.engine.component.query.api.FilterExpression;
 import com.authine.cloudpivot.engine.enums.ErrCode;
+import com.authine.cloudpivot.ext.constant.BusRuleOptConstants;
 import com.authine.cloudpivot.ext.model.ExtBaseModel;
 import com.authine.cloudpivot.ext.model.hrm.AttendanceSummaryModel;
 import com.authine.cloudpivot.ext.model.hrm.LeaveApplyModel;
@@ -44,10 +45,6 @@ public class LeaveSummaryService extends BaseCommonService {
 
     @Autowired
     private AttendanceSummaryService attendanceSummaryService;
-
-    private static final String OPT_AVAILABLE = "AVAILABLE";
-    private static final String OPT_CANCEL = "CANCEL";
-    private static final String OPT_DELETE = "DELETE";
 
     private static final String TYPE_SHIJIA = "事假";
     private static final String TYPE_BINGJIA = "病假";
@@ -91,7 +88,7 @@ public class LeaveSummaryService extends BaseCommonService {
             // 如果已经作废了流程，删除数据则不更新汇总，进行中的流程删除也不触发更新汇总
             String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
             String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
-            if (OPT_DELETE.equals(opt)) {
+            if (BusRuleOptConstants.OPT_DELETE.equals(opt)) {
                 if (StringUtils.isNotBlank(workflowInstanceId)) {
                     if ("CANCELED".equals(sequenceStatus) || "PROCESSING".equals(sequenceStatus)) {
                         return ResponseResultUtils.getOkResponseResult(null, "操作成功");
@@ -152,9 +149,7 @@ public class LeaveSummaryService extends BaseCommonService {
 
             log.info("[人事系统-考勤]：休假数据统计到考勤汇总结束...");
             return ResponseResultUtils.getOkResponseResult(null, "操作成功");
-        } catch (
-
-        Exception e) {
+        } catch (Exception e) {
             log.error("[人事系统-考勤]：休假数据统计到考勤汇总异常：{}", e.toString());
             e.printStackTrace();
             return ResponseResultUtils.getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), e.getMessage());
@@ -193,7 +188,7 @@ public class LeaveSummaryService extends BaseCommonService {
 
         Map<String, Object> tableData = Maps.newHashMap();
         if (MapUtils.isEmpty(formDataMap)) {
-            if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
+            if (BusRuleOptConstants.OPT_DELETE.equals(opt) || BusRuleOptConstants.OPT_CANCEL.equals(opt)) {
                 // 删除数据，作废流程不触发新增
                 return null;
             }
@@ -201,9 +196,8 @@ public class LeaveSummaryService extends BaseCommonService {
             tableData.put(AttendanceSummaryModel.userName, orgUserId);
             tableData.put(AttendanceSummaryModel.userDept, orgUserDept);
             tableData.put(AttendanceSummaryModel.kaoQinYue, month);
-
+            // init
             tableData.putAll(attendanceSummaryService.initTableData());
-
             // 区分类型赋值
             if (TYPE_SHIJIA.equals(leaveType)) {
                 tableData.put(AttendanceSummaryModel.shiJia, timeLength);
@@ -243,7 +237,7 @@ public class LeaveSummaryService extends BaseCommonService {
             double youxXinJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.youxXinJia)).doubleValue();
             double qiTaQingJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.qiTaQingJia)).doubleValue();
 
-            if (OPT_AVAILABLE.equals(opt)) {
+            if (BusRuleOptConstants.OPT_AVAILABLE.equals(opt)) {
                 if (TYPE_SHIJIA.equals(leaveType)) {
                     tableData.put(AttendanceSummaryModel.shiJia, shiJia + timeLength);
                 } else if (TYPE_BINGJIA.equals(leaveType)) {
@@ -267,7 +261,7 @@ public class LeaveSummaryService extends BaseCommonService {
                 } else {
                     tableData.put(AttendanceSummaryModel.qiTaQingJia, qiTaQingJia + timeLength);
                 }
-            } else if (OPT_CANCEL.equals(opt) || OPT_DELETE.equals(opt)) {
+            } else if (BusRuleOptConstants.OPT_CANCEL.equals(opt) || BusRuleOptConstants.OPT_DELETE.equals(opt)) {
                 if (TYPE_SHIJIA.equals(leaveType)) {
                     tableData.put(AttendanceSummaryModel.shiJia, shiJia - timeLength);
                 } else if (TYPE_BINGJIA.equals(leaveType)) {

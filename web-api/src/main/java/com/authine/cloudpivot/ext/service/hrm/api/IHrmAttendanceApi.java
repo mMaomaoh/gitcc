@@ -38,4 +38,12 @@ public interface IHrmAttendanceApi {
      */
     ResponseResult<Map<String, Object>> summaryLeave(Map<String, Object> params);
 
+    /**
+     * 出差数据统计到考勤汇总
+     * 
+     * @param params
+     * @return
+     */
+    ResponseResult<Map<String, Object>> summaryBusinessTrip(Map<String, Object> params);
+
 }
