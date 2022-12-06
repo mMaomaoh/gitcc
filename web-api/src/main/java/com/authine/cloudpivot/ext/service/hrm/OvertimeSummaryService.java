@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -88,12 +89,14 @@ public class OvertimeSummaryService extends BaseCommonService {
             }
             Map<String, Object> formDataMap = formDataList.get(0).getData();
 
-            // 如果已经作废了流程，删除数据则不更新汇总
+            // 如果已经作废了流程，删除数据则不更新汇总，进行中的流程删除也不触发更新汇总
             String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
             String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
             if (OPT_DELETE.equals(opt)) {
-                if (StringUtils.isNotBlank(workflowInstanceId) && "CANCELED".equals(sequenceStatus)) {
-                    return ResponseResultUtils.getOkResponseResult(null, "操作成功");
+                if (StringUtils.isNotBlank(workflowInstanceId)) {
+                    if ("CANCELED".equals(sequenceStatus) || "PROCESSING".equals(sequenceStatus)) {
+                        return ResponseResultUtils.getOkResponseResult(null, "操作成功");
+                    }
                 }
             }
 
@@ -125,29 +128,15 @@ public class OvertimeSummaryService extends BaseCommonService {
                 }
 
                 // 更新到考勤汇总
-                Map<String, Double> attDataMap = Maps.newHashMap();
-                if (JIABAN_TYPE_1.equals(jiaBanType)) {
-                    attDataMap.put(AttendanceSummaryModel.gongZuoRiJiaBan, timeLength);
-                } else if (JIABAN_TYPE_2.equals(jiaBanType)) {
-                    attDataMap.put(AttendanceSummaryModel.xiuXiRiJiaBan, timeLength);
-                } else if (JIABAN_TYPE_3.equals(jiaBanType)) {
-                    attDataMap.put(AttendanceSummaryModel.jieJiaRiJiaBan, timeLength);
-                }
-                if (JIESUAN_TYPE_1.equals(jieSuanType)) {
-                    attDataMap.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, timeLength);
-                } else if (JIESUAN_TYPE_2.equals(jieSuanType)) {
-                    attDataMap.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, timeLength);
-                }
-                if (JIESUAN_TYPE_3.equals(jieSuanType)) {
-                    attDataMap.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, timeLength);
-                }
                 Map<String, Object> attSummaryMap = Maps.newHashMap();
                 attSummaryMap.put("schemaCode", sc_kqhz);
                 attSummaryMap.put("yearMonth", yearMonth);
                 attSummaryMap.put("userId", uid);
                 attSummaryMap.put("userDept", userDept);
-                attSummaryMap.put("data", attDataMap);
+                attSummaryMap.put("timeLength", timeLength);
                 attSummaryMap.put("opt", opt);
+                attSummaryMap.put("jiaBanType", jiaBanType);
+                attSummaryMap.put("jieSuanType", jieSuanType);
                 updateAttendanceSummery(attSummaryMap);
             }
 
@@ -184,8 +173,17 @@ public class OvertimeSummaryService extends BaseCommonService {
 
         List<BizObjectModel> formDataList = super.baseQueryFormData(schemaCode, null, columns, filter);
 
-        Map<String, Object> tableData = Maps.newHashMap();
+        Map<String, Object> formDataMap = Maps.newHashMap();
         if (CollectionUtils.isEmpty(formDataList)) {
+            // nothing
+        } else if (formDataList.size() > 1) {
+            throw new Exception("查询结果异常");
+        } else {
+            formDataMap = formDataList.get(0).getData();
+        }
+
+        Map<String, Object> tableData = Maps.newHashMap();
+        if (MapUtils.isEmpty(formDataMap)) {
             if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
                 // 删除数据，作废流程不触发新增
                 return null;
@@ -194,32 +192,30 @@ public class OvertimeSummaryService extends BaseCommonService {
             tableData.put(OvertimeSummaryModel.userDept, orgUserDept);
             tableData.put(OvertimeSummaryModel.years, years);
             tableData.put(OvertimeSummaryModel.workTimesRemainder, timeLength);
-        } else if (formDataList.size() > 1) {
-            throw new Exception("查询结果异常");
         } else {
-            Map<String, Object> formDataMap = formDataList.get(0).getData();
             tableData.putAll(formDataMap);
-
             double d = ((BigDecimal)formDataMap.get(OvertimeSummaryModel.workTimesRemainder)).doubleValue();
             if (OPT_AVAILABLE.equals(opt)) {
-                tableData.put(OvertimeSummaryModel.workTimesRemainder, timeLength + d);
+                tableData.put(OvertimeSummaryModel.workTimesRemainder, d + timeLength);
             } else if (OPT_CANCEL.equals(opt) || OPT_DELETE.equals(opt)) {
                 tableData.put(OvertimeSummaryModel.workTimesRemainder, d - timeLength);
             }
         }
+
         BizObjectModel model = new BizObjectModel(schemaCode, tableData, false);
         String result = engineService.getBizObjectFacade().saveBizObject(orgUserId, model, true);
         return result;
     }
 
     public String updateAttendanceSummery(Map<String, Object> params) throws Exception {
-
         String opt = (String)params.get("opt");
         String schemaCode = (String)params.get("schemaCode");
         LocalDateTime yearMonth = (LocalDateTime)params.get("yearMonth");
         String orgUserId = (String)params.get("userId");
         String orgUserDept = (String)params.get("userDept");
-        Map<String, Object> data = (Map<String, Object>)params.get("data");
+        String jiaBanType = (String)params.get("jiaBanType");
+        String jieSuanType = (String)params.get("jieSuanType");
+        double timeLength = (double)params.get("timeLength");
 
         List<String> columns = ExtClassUtils.getFiledsValue(AttendanceSummaryModel.class);
 
@@ -230,24 +226,47 @@ public class OvertimeSummaryService extends BaseCommonService {
         FilterExpression.And filter = new FilterExpression.And(filterList);
 
         List<BizObjectModel> formDataList = super.baseQueryFormData(schemaCode, null, columns, filter);
-
-        Map<String, Object> tableData = Maps.newHashMap();
+        Map<String, Object> formDataMap = Maps.newHashMap();
         if (CollectionUtils.isEmpty(formDataList)) {
-            // 新增数据
-            tableData.putAll(attendanceSummaryService.initTableData());
-            tableData.putAll(data);
-            tableData.put(AttendanceSummaryModel.userName, orgUserId);
-            tableData.put(AttendanceSummaryModel.userDept, orgUserDept);
-            tableData.put(AttendanceSummaryModel.kaoQinYue, Timestamp.valueOf(yearMonth));
+            // nothing
         } else if (formDataList.size() > 1) {
             throw new Exception("查询结果异常");
         } else {
-            // 更新数据
-            Map<String, Object> formDataMap = formDataList.get(0).getData();
+            formDataMap = formDataList.get(0).getData();
+        }
+
+        // 新增或更新数据
+        Map<String, Object> tableData = Maps.newHashMap();
+        if (MapUtils.isEmpty(formDataMap)) {
+            if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
+                // 删除数据，作废流程不触发新增
+                return null;
+            }
+            tableData.putAll(attendanceSummaryService.initTableData());
+
+            tableData.put(AttendanceSummaryModel.userName, orgUserId);
+            tableData.put(AttendanceSummaryModel.userDept, orgUserDept);
+            tableData.put(AttendanceSummaryModel.kaoQinYue, Timestamp.valueOf(yearMonth));
+
+            if (JIABAN_TYPE_1.equals(jiaBanType)) {
+                tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, timeLength);
+            } else if (JIABAN_TYPE_2.equals(jiaBanType)) {
+                tableData.put(AttendanceSummaryModel.xiuXiRiJiaBan, timeLength);
+            } else if (JIABAN_TYPE_3.equals(jiaBanType)) {
+                tableData.put(AttendanceSummaryModel.jieJiaRiJiaBan, timeLength);
+            }
+            if (JIESUAN_TYPE_1.equals(jieSuanType)) {
+                tableData.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, timeLength);
+            } else if (JIESUAN_TYPE_2.equals(jieSuanType)) {
+                tableData.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, timeLength);
+            }
+            if (JIESUAN_TYPE_3.equals(jieSuanType)) {
+                tableData.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, timeLength);
+            }
+        } else {
             // tableData.put(ExtBaseModel.id, formDataMap.get(ExtBaseModel.id));
             tableData.putAll(formDataMap);
 
-            // 数据库查出来的
             double gongZuoRiJiaBan =
                 ((BigDecimal)formDataMap.get(AttendanceSummaryModel.gongZuoRiJiaBan)).doubleValue();
             double xiuXiRiJiaBan = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.xiuXiRiJiaBan)).doubleValue();
@@ -259,37 +278,41 @@ public class OvertimeSummaryService extends BaseCommonService {
             double jieSuanQiTaJiaBan =
                 ((BigDecimal)formDataMap.get(AttendanceSummaryModel.jieSuanQiTaJiaBan)).doubleValue();
 
-            // 需要累加的
-            double gongZuoRiJiaBan1 = (double)data.get(AttendanceSummaryModel.gongZuoRiJiaBan);
-            double xiuXiRiJiaBan1 = (double)data.get(AttendanceSummaryModel.xiuXiRiJiaBan);
-            double jieJiaRiJiaBan1 = (double)data.get(AttendanceSummaryModel.jieJiaRiJiaBan);
-            double jieSuanTiaoXiuJiaBan1 = (double)data.get(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan);
-            double jieSuanXinZiJiaBan1 = (double)data.get(AttendanceSummaryModel.jieSuanXinZiJiaBan);
-            double jieSuanQiTaJiaBan1 = (double)data.get(AttendanceSummaryModel.jieSuanQiTaJiaBan);
-
-            // 累加计算
             if (OPT_AVAILABLE.equals(opt)) {
-                tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, gongZuoRiJiaBan + gongZuoRiJiaBan1);
-                tableData.put(AttendanceSummaryModel.xiuXiRiJiaBan, xiuXiRiJiaBan + xiuXiRiJiaBan1);
-                tableData.put(AttendanceSummaryModel.jieJiaRiJiaBan, jieJiaRiJiaBan + jieJiaRiJiaBan1);
-                tableData.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan,
-                    jieSuanTiaoXiuJiaBan + jieSuanTiaoXiuJiaBan1);
-                tableData.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, jieSuanXinZiJiaBan + jieSuanXinZiJiaBan1);
-                tableData.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, jieSuanQiTaJiaBan + jieSuanQiTaJiaBan1);
+                if (JIABAN_TYPE_1.equals(jiaBanType)) {
+                    tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, gongZuoRiJiaBan + timeLength);
+                } else if (JIABAN_TYPE_2.equals(jiaBanType)) {
+                    tableData.put(AttendanceSummaryModel.xiuXiRiJiaBan, xiuXiRiJiaBan + timeLength);
+                } else if (JIABAN_TYPE_3.equals(jiaBanType)) {
+                    tableData.put(AttendanceSummaryModel.jieJiaRiJiaBan, jieJiaRiJiaBan + timeLength);
+                }
+                if (JIESUAN_TYPE_1.equals(jieSuanType)) {
+                    tableData.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, jieSuanTiaoXiuJiaBan + timeLength);
+                } else if (JIESUAN_TYPE_2.equals(jieSuanType)) {
+                    tableData.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, jieSuanXinZiJiaBan + timeLength);
+                } else if (JIESUAN_TYPE_3.equals(jieSuanType)) {
+                    tableData.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, jieSuanQiTaJiaBan + timeLength);
+                }
             } else if (OPT_CANCEL.equals(opt) || OPT_DELETE.equals(opt)) {
-                tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, gongZuoRiJiaBan - gongZuoRiJiaBan1);
-                tableData.put(AttendanceSummaryModel.xiuXiRiJiaBan, xiuXiRiJiaBan - xiuXiRiJiaBan1);
-                tableData.put(AttendanceSummaryModel.jieJiaRiJiaBan, jieJiaRiJiaBan - jieJiaRiJiaBan1);
-                tableData.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan,
-                    jieSuanTiaoXiuJiaBan - jieSuanTiaoXiuJiaBan1);
-                tableData.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, jieSuanXinZiJiaBan - jieSuanXinZiJiaBan1);
-                tableData.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, jieSuanQiTaJiaBan - jieSuanQiTaJiaBan1);
+                if (JIABAN_TYPE_1.equals(jiaBanType)) {
+                    tableData.put(AttendanceSummaryModel.gongZuoRiJiaBan, gongZuoRiJiaBan - timeLength);
+                } else if (JIABAN_TYPE_2.equals(jiaBanType)) {
+                    tableData.put(AttendanceSummaryModel.xiuXiRiJiaBan, xiuXiRiJiaBan - timeLength);
+                } else if (JIABAN_TYPE_3.equals(jiaBanType)) {
+                    tableData.put(AttendanceSummaryModel.jieJiaRiJiaBan, jieJiaRiJiaBan - timeLength);
+                }
+                if (JIESUAN_TYPE_1.equals(jieSuanType)) {
+                    tableData.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, jieSuanTiaoXiuJiaBan - timeLength);
+                } else if (JIESUAN_TYPE_2.equals(jieSuanType)) {
+                    tableData.put(AttendanceSummaryModel.jieSuanXinZiJiaBan, jieSuanXinZiJiaBan - timeLength);
+                } else if (JIESUAN_TYPE_3.equals(jieSuanType)) {
+                    tableData.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, jieSuanQiTaJiaBan - timeLength);
+                }
             }
         }
 
         BizObjectModel model = new BizObjectModel(schemaCode, tableData, false);
         String result = engineService.getBizObjectFacade().saveBizObject(orgUserId, model, true);
-
         return result;
     }
 

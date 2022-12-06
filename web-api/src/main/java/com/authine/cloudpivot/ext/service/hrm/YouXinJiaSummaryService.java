@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -70,12 +71,14 @@ public class YouXinJiaSummaryService extends BaseCommonService {
             }
             Map<String, Object> formDataMap = formDataList.get(0).getData();
 
-            // 如果已经作废了流程，删除数据则不更新汇总
+            // 如果已经作废了流程，删除数据则不更新汇总，进行中的流程删除也不触发更新汇总
             String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
             String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
             if (OPT_DELETE.equals(opt)) {
-                if (StringUtils.isNotBlank(workflowInstanceId) && "CANCELED".equals(sequenceStatus)) {
-                    return ResponseResultUtils.getOkResponseResult(null, "操作成功");
+                if (StringUtils.isNotBlank(workflowInstanceId)) {
+                    if ("CANCELED".equals(sequenceStatus) || "PROCESSING".equals(sequenceStatus)) {
+                        return ResponseResultUtils.getOkResponseResult(null, "操作成功");
+                    }
                 }
             }
 
@@ -128,8 +131,17 @@ public class YouXinJiaSummaryService extends BaseCommonService {
 
         List<BizObjectModel> formDataList = super.baseQueryFormData(schemaCode, null, columns, filter);
 
-        Map<String, Object> tableData = Maps.newHashMap();
+        Map<String, Object> formDataMap = Maps.newHashMap();
         if (CollectionUtils.isEmpty(formDataList)) {
+            // nothing
+        } else if (formDataList.size() > 1) {
+            throw new Exception("查询结果异常");
+        } else {
+            formDataMap = formDataList.get(0).getData();
+        }
+
+        Map<String, Object> tableData = Maps.newHashMap();
+        if (MapUtils.isEmpty(formDataMap)) {
             if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
                 // 删除数据，作废流程不触发新增
                 return null;
@@ -138,24 +150,18 @@ public class YouXinJiaSummaryService extends BaseCommonService {
             tableData.put(YouXinJiaSummaryModel.userDept, orgUserDept);
             tableData.put(YouXinJiaSummaryModel.years, Timestamp.valueOf(years));
             tableData.put(YouXinJiaSummaryModel.repaidTimesRemainder, timeLength);
-        } else if (formDataList.size() > 1) {
-            throw new Exception("查询结果异常");
         } else {
-            Map<String, Object> formDataMap = formDataList.get(0).getData();
             double d = ((BigDecimal)formDataMap.get(YouXinJiaSummaryModel.repaidTimesRemainder)).doubleValue();
             tableData.putAll(formDataMap);
             if (OPT_AVAILABLE.equals(opt)) {
                 tableData.put(YouXinJiaSummaryModel.repaidTimesRemainder, timeLength + d);
             } else if (OPT_CANCEL.equals(opt) || OPT_DELETE.equals(opt)) {
-                if (0.0 != d) {
-                    tableData.put(YouXinJiaSummaryModel.repaidTimesRemainder, d - timeLength);
-                }
+                tableData.put(YouXinJiaSummaryModel.repaidTimesRemainder, d - timeLength);
             }
         }
 
         BizObjectModel model = new BizObjectModel(schemaCode, tableData, false);
         String result = engineService.getBizObjectFacade().saveBizObject(orgUserId, model, true);
-
         return result;
     }
 

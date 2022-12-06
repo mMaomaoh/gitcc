@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,12 +88,14 @@ public class LeaveSummaryService extends BaseCommonService {
             }
             Map<String, Object> formDataMap = formDataList.get(0).getData();
 
-            // 如果已经作废了流程，删除数据则不更新汇总
+            // 如果已经作废了流程，删除数据则不更新汇总，进行中的流程删除也不触发更新汇总
             String workflowInstanceId = (String)formDataMap.get(ExtBaseModel.workflowInstanceId);
             String sequenceStatus = (String)formDataMap.get(ExtBaseModel.sequenceStatus);
             if (OPT_DELETE.equals(opt)) {
-                if (StringUtils.isNotBlank(workflowInstanceId) && "CANCELED".equals(sequenceStatus)) {
-                    return ResponseResultUtils.getOkResponseResult(null, "操作成功");
+                if (StringUtils.isNotBlank(workflowInstanceId)) {
+                    if ("CANCELED".equals(sequenceStatus) || "PROCESSING".equals(sequenceStatus)) {
+                        return ResponseResultUtils.getOkResponseResult(null, "操作成功");
+                    }
                 }
             }
 
@@ -179,8 +182,17 @@ public class LeaveSummaryService extends BaseCommonService {
 
         List<BizObjectModel> formDataList = super.baseQueryFormData(schemaCode, null, columns, filter);
 
-        Map<String, Object> tableData = Maps.newHashMap();
+        Map<String, Object> formDataMap = Maps.newHashMap();
         if (CollectionUtils.isEmpty(formDataList)) {
+            // nothing
+        } else if (formDataList.size() > 1) {
+            throw new Exception("查询结果异常");
+        } else {
+            formDataMap = formDataList.get(0).getData();
+        }
+
+        Map<String, Object> tableData = Maps.newHashMap();
+        if (MapUtils.isEmpty(formDataMap)) {
             if (OPT_DELETE.equals(opt) || OPT_CANCEL.equals(opt)) {
                 // 删除数据，作废流程不触发新增
                 return null;
@@ -216,81 +228,68 @@ public class LeaveSummaryService extends BaseCommonService {
             } else {
                 tableData.put(AttendanceSummaryModel.qiTaQingJia, timeLength);
             }
-        } else if (formDataList.size() > 1) {
-            throw new Exception("查询结果异常");
         } else {
-            Map<String, Object> formDataMap = formDataList.get(0).getData();
             tableData.putAll(formDataMap);
-            // length当前已汇总的，timeLength休假申请休假时长
+
+            double shiJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.shiJia)).doubleValue();
+            double bingJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.bingJia)).doubleValue();
+            double sangJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.sangJia)).doubleValue();
+            double hunJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.hunJia)).doubleValue();
+            double chanJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.chanJia)).doubleValue();
+            double peiChanJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.peiChanJia)).doubleValue();
+            double chanJianJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.chanJianJia)).doubleValue();
+            double tiaoXiu = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.tiaoXiu)).doubleValue();
+            double nianJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.nianJia)).doubleValue();
+            double youxXinJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.youxXinJia)).doubleValue();
+            double qiTaQingJia = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.qiTaQingJia)).doubleValue();
+
             if (OPT_AVAILABLE.equals(opt)) {
                 if (TYPE_SHIJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.shiJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.shiJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.shiJia, shiJia + timeLength);
                 } else if (TYPE_BINGJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.bingJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.bingJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.bingJia, bingJia + timeLength);
                 } else if (TYPE_SANGJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.sangJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.sangJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.sangJia, sangJia + timeLength);
                 } else if (TYPE_HUNJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.hunJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.hunJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.hunJia, hunJia + timeLength);
                 } else if (TYPE_CHANJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.chanJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.chanJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.chanJia, chanJia + timeLength);
                 } else if (TYPE_PEICHANJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.peiChanJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.peiChanJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.peiChanJia, peiChanJia + timeLength);
                 } else if (TYPE_CHANJIANJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.chanJianJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.chanJianJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.chanJianJia, chanJianJia + timeLength);
                 } else if (TYPE_TIAOXIU.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.tiaoXiu)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.tiaoXiu, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.tiaoXiu, tiaoXiu + timeLength);
                 } else if (TYPE_NIANJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.nianJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.nianJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.nianJia, nianJia + timeLength);
                 } else if (TYPE_YOUXINJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.youxXinJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.youxXinJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.youxXinJia, youxXinJia + timeLength);
                 } else {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.qiTaQingJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.qiTaQingJia, length + timeLength);
+                    tableData.put(AttendanceSummaryModel.qiTaQingJia, qiTaQingJia + timeLength);
                 }
             } else if (OPT_CANCEL.equals(opt) || OPT_DELETE.equals(opt)) {
                 if (TYPE_SHIJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.shiJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.shiJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.shiJia, shiJia - timeLength);
                 } else if (TYPE_BINGJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.bingJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.bingJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.bingJia, bingJia - timeLength);
                 } else if (TYPE_SANGJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.sangJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.sangJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.sangJia, sangJia - timeLength);
                 } else if (TYPE_HUNJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.hunJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.hunJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.hunJia, hunJia - timeLength);
                 } else if (TYPE_CHANJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.chanJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.chanJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.chanJia, chanJia - timeLength);
                 } else if (TYPE_PEICHANJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.peiChanJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.peiChanJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.peiChanJia, peiChanJia - timeLength);
                 } else if (TYPE_CHANJIANJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.chanJianJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.chanJianJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.chanJianJia, chanJianJia - timeLength);
                 } else if (TYPE_TIAOXIU.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.tiaoXiu)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.tiaoXiu, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.tiaoXiu, tiaoXiu - timeLength);
                 } else if (TYPE_NIANJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.nianJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.nianJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.nianJia, nianJia - timeLength);
                 } else if (TYPE_YOUXINJIA.equals(leaveType)) {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.youxXinJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.youxXinJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.youxXinJia, youxXinJia - timeLength);
                 } else {
-                    double length = ((BigDecimal)formDataMap.get(AttendanceSummaryModel.qiTaQingJia)).doubleValue();
-                    tableData.put(AttendanceSummaryModel.qiTaQingJia, length - timeLength);
+                    tableData.put(AttendanceSummaryModel.qiTaQingJia, qiTaQingJia - timeLength);
                 }
             }
         }
