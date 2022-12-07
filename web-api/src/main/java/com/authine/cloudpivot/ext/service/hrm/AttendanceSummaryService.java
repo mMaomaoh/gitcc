@@ -68,6 +68,8 @@ public class AttendanceSummaryService extends BaseCommonService {
         tableData.put(AttendanceSummaryModel.jieSuanTiaoXiuJiaBan, 0.0);
         tableData.put(AttendanceSummaryModel.jieSuanQiTaJiaBan, 0.0);
 
+        tableData.put(AttendanceSummaryModel.chuChai, 0.0);
+
         return tableData;
     }
 

@@ -1,5 +1,6 @@
 package com.authine.cloudpivot.ext.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -16,6 +17,8 @@ import com.authine.cloudpivot.engine.enums.ErrCode;
 import com.authine.cloudpivot.ext.service.hrm.api.IHrmAttendanceApi;
 import com.authine.cloudpivot.web.api.controller.base.BaseController;
 import com.authine.cloudpivot.web.api.view.ResponseResult;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -38,6 +41,25 @@ public class HrmAttendanceController extends BaseController {
 
     @Autowired
     private IHrmAttendanceApi hrmAttendanceApi;
+
+    @ApiOperation(value = "获取考勤明细-定时任务getList")
+    @PostMapping("/getList")
+    @ResponseBody
+    public Map<String, Object> getList() {
+        /*
+         * 该接口无具体业务含义，确保返回一条list格式数据即可
+         */
+        Map<String, Object> data = Maps.newHashMap();
+        data.put("total", 1);
+
+        Map<String, Object> content = Maps.newHashMap();
+        content.put("a", "test");
+        List<Map<String, Object>> list = Lists.newArrayList();
+        list.add(content);
+
+        data.put("content", list);
+        return data;
+    }
 
     /**
      * 获取钉钉打卡结果
