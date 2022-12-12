@@ -28,7 +28,7 @@ public class CrmCommonService extends BaseCommonService {
     public static final String DATASOURCE_CREATE = "新增";
     public static final String DATASOURCE_GONGHAI = "公海";
     public static final String DATASOURCE_KEHU = "客户";
-    public static final String DATASOURCE_XIANSUO = "客户";
+    public static final String DATASOURCE_XIANSUO = "线索";
 
     public static final String OPT_SOURCE_XIANSUO = "XIANSUO";
     public static final String OPT_SOURCE_KEHU = "KEHU";
