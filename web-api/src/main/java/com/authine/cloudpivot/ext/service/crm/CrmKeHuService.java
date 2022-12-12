@@ -94,7 +94,7 @@ public class CrmKeHuService extends BaseCommonService {
                 tableData.remove("sourceObjectId");
                 BizObjectModel model = new BizObjectModel(sc_kh, tableData, false);
                 String s = engineService.getBizObjectFacade().saveBizObject(userId, model, false);
-                if (null == s) {
+                if (null != s) {
                     successIds.add(id);
                 }
             }
@@ -134,7 +134,7 @@ public class CrmKeHuService extends BaseCommonService {
             Map<String, Object> temp = Maps.newHashMap();
             Map<String, Object> formDataMap = formDataList.get(i);
             temp.put(KeHuModel.keHuMingCheng, formDataMap.get(XianSuoModel.keHuMingCheng));
-            temp.put(KeHuModel.sequenceNo, formDataMap.get(XianSuoModel.sequenceNo));
+            temp.put(KeHuModel.keHuBianMa, formDataMap.get(XianSuoModel.keHuBianMa));
             temp.put(KeHuModel.keHuJiBie, formDataMap.get(XianSuoModel.keHuJiBie));
             temp.put(KeHuModel.qiYeGuiMo, formDataMap.get(XianSuoModel.qiYeGuiMo));
             temp.put(KeHuModel.categoryFirst, formDataMap.get(XianSuoModel.categoryFirst));
@@ -154,7 +154,7 @@ public class CrmKeHuService extends BaseCommonService {
             List<Map<String, Object>> sheetList = Lists.newArrayList();
             for (int j = 0; j < sheetDataList.size(); j++) {
                 Map<String, Object> sheetMap = sheetDataList.get(j);
-                Map<String, Object> t = sheetDataList.get(j);
+                Map<String, Object> t = Maps.newHashMap();
                 t.put(KeHuModel.sheet_keHuName, sheetMap.get(XianSuoModel.sheet_keHuName));
                 t.put(KeHuModel.sheet_shouJiHao, sheetMap.get(XianSuoModel.sheet_shouJiHao));
                 t.put(KeHuModel.sheet_buMen, sheetMap.get(XianSuoModel.sheet_buMen));
@@ -177,7 +177,7 @@ public class CrmKeHuService extends BaseCommonService {
             Map<String, Object> temp = Maps.newHashMap();
             Map<String, Object> formDataMap = formDataList.get(i);
             temp.put(KeHuModel.keHuMingCheng, formDataMap.get(GongHaiModel.keHuMingCheng));
-            temp.put(KeHuModel.sequenceNo, formDataMap.get(GongHaiModel.sequenceNo));
+            temp.put(KeHuModel.keHuBianMa, formDataMap.get(GongHaiModel.keHuBianMa));
             temp.put(KeHuModel.keHuJiBie, formDataMap.get(GongHaiModel.keHuJiBie));
             temp.put(KeHuModel.qiYeGuiMo, formDataMap.get(GongHaiModel.qiYeGuiMo));
             temp.put(KeHuModel.categoryFirst, formDataMap.get(GongHaiModel.categoryFirst));
@@ -197,7 +197,7 @@ public class CrmKeHuService extends BaseCommonService {
             List<Map<String, Object>> sheetList = Lists.newArrayList();
             for (int j = 0; j < sheetDataList.size(); j++) {
                 Map<String, Object> sheetMap = sheetDataList.get(j);
-                Map<String, Object> t = sheetDataList.get(j);
+                Map<String, Object> t = Maps.newHashMap();
                 t.put(KeHuModel.sheet_keHuName, sheetMap.get(GongHaiModel.sheet_keHuName));
                 t.put(KeHuModel.sheet_shouJiHao, sheetMap.get(GongHaiModel.sheet_shouJiHao));
                 t.put(KeHuModel.sheet_buMen, sheetMap.get(GongHaiModel.sheet_buMen));

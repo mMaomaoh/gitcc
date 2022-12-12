@@ -85,16 +85,16 @@ public class CrmXianSuoService extends BaseCommonService {
             }
 
             /*
-             * 新增客户表
+             * 新增线索表
              */
             List<String> successIds = Lists.newArrayList();
             for (int i = 0; i < insertDataList.size(); i++) {
                 Map<String, Object> tableData = insertDataList.get(i);
                 String id = (String)tableData.get("sourceObjectId");
                 tableData.remove("sourceObjectId");
-                BizObjectModel model = new BizObjectModel(sc_kh, tableData, false);
+                BizObjectModel model = new BizObjectModel(sc_xs, tableData, false);
                 String s = engineService.getBizObjectFacade().saveBizObject(userId, model, false);
-                if (null == s) {
+                if (null != s) {
                     successIds.add(id);
                 }
             }
@@ -102,11 +102,11 @@ public class CrmXianSuoService extends BaseCommonService {
             /*
              * 删除公海/客户表
              */
-            if (CrmCommonService.OPT_SOURCE_XIANSUO.equals(optSource)) {
+            if (CrmCommonService.OPT_SOURCE_KEHU.equals(optSource)) {
                 for (int i = 0; i < objectIds.size(); i++) {
                     String id = objectIds.get(i);
                     if (successIds.contains(id)) {
-                        engineService.getBizObjectFacade().deleteBizObject(sc_xs, id);
+                        engineService.getBizObjectFacade().deleteBizObject(sc_kh, id);
                     }
                 }
             } else if (CrmCommonService.OPT_SOURCE_GONGHAI.equals(optSource)) {
@@ -134,7 +134,7 @@ public class CrmXianSuoService extends BaseCommonService {
             Map<String, Object> temp = Maps.newHashMap();
             Map<String, Object> formDataMap = formDataList.get(i);
             temp.put(XianSuoModel.keHuMingCheng, formDataMap.get(KeHuModel.keHuMingCheng));
-            temp.put(XianSuoModel.sequenceNo, formDataMap.get(KeHuModel.sequenceNo));
+            temp.put(XianSuoModel.keHuBianMa, formDataMap.get(KeHuModel.keHuBianMa));
             temp.put(XianSuoModel.keHuJiBie, formDataMap.get(KeHuModel.keHuJiBie));
             temp.put(XianSuoModel.qiYeGuiMo, formDataMap.get(KeHuModel.qiYeGuiMo));
             temp.put(XianSuoModel.categoryFirst, formDataMap.get(KeHuModel.categoryFirst));
@@ -146,7 +146,7 @@ public class CrmXianSuoService extends BaseCommonService {
             temp.put(XianSuoModel.keHuJingLiBuMen, formDataMap.get(KeHuModel.keHuJingLiBuMen));
 
             temp.put(XianSuoModel.dataSource, CrmCommonService.DATASOURCE_KEHU);
-            temp.put(XianSuoModel.toXianSuoReason, formDataMap.get(KeHuModel.toKeHuReason));
+            temp.put(XianSuoModel.toXianSuoReason, formDataMap.get(KeHuModel.toXianSuoReason));
             temp.put(XianSuoModel.toXianSuoTime, new Date());
 
             // 子表
@@ -154,7 +154,7 @@ public class CrmXianSuoService extends BaseCommonService {
             List<Map<String, Object>> sheetList = Lists.newArrayList();
             for (int j = 0; j < sheetDataList.size(); j++) {
                 Map<String, Object> sheetMap = sheetDataList.get(j);
-                Map<String, Object> t = sheetDataList.get(j);
+                Map<String, Object> t = Maps.newHashMap();
                 t.put(XianSuoModel.sheet_keHuName, sheetMap.get(KeHuModel.sheet_keHuName));
                 t.put(XianSuoModel.sheet_shouJiHao, sheetMap.get(KeHuModel.sheet_shouJiHao));
                 t.put(XianSuoModel.sheet_buMen, sheetMap.get(KeHuModel.sheet_buMen));
@@ -177,7 +177,7 @@ public class CrmXianSuoService extends BaseCommonService {
             Map<String, Object> temp = Maps.newHashMap();
             Map<String, Object> formDataMap = formDataList.get(i);
             temp.put(XianSuoModel.keHuMingCheng, formDataMap.get(GongHaiModel.keHuMingCheng));
-            temp.put(XianSuoModel.sequenceNo, formDataMap.get(GongHaiModel.sequenceNo));
+            temp.put(XianSuoModel.keHuBianMa, formDataMap.get(GongHaiModel.keHuBianMa));
             temp.put(XianSuoModel.keHuJiBie, formDataMap.get(GongHaiModel.keHuJiBie));
             temp.put(XianSuoModel.qiYeGuiMo, formDataMap.get(GongHaiModel.qiYeGuiMo));
             temp.put(XianSuoModel.categoryFirst, formDataMap.get(GongHaiModel.categoryFirst));
@@ -189,7 +189,7 @@ public class CrmXianSuoService extends BaseCommonService {
             temp.put(XianSuoModel.keHuJingLiBuMen, formDataMap.get(GongHaiModel.keHuJingLiBuMen));
 
             temp.put(XianSuoModel.dataSource, CrmCommonService.DATASOURCE_GONGHAI);
-            temp.put(XianSuoModel.toXianSuoReason, formDataMap.get(GongHaiModel.toKeHuReason));
+            temp.put(XianSuoModel.toXianSuoReason, formDataMap.get(GongHaiModel.toXianSuoReason));
             temp.put(XianSuoModel.toXianSuoReason, new Date());
 
             // 子表
@@ -197,7 +197,7 @@ public class CrmXianSuoService extends BaseCommonService {
             List<Map<String, Object>> sheetList = Lists.newArrayList();
             for (int j = 0; j < sheetDataList.size(); j++) {
                 Map<String, Object> sheetMap = sheetDataList.get(j);
-                Map<String, Object> t = sheetDataList.get(j);
+                Map<String, Object> t = Maps.newHashMap();
                 t.put(XianSuoModel.sheet_keHuName, sheetMap.get(GongHaiModel.sheet_keHuName));
                 t.put(XianSuoModel.sheet_shouJiHao, sheetMap.get(GongHaiModel.sheet_shouJiHao));
                 t.put(XianSuoModel.sheet_buMen, sheetMap.get(GongHaiModel.sheet_buMen));

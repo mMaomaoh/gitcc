@@ -3,7 +3,7 @@ package com.authine.cloudpivot.ext.model.crm;
 public class KeHuModel {
 
     public static final String keHuMingCheng = "keHuMingCheng";
-    public static final String sequenceNo = "sequenceNo";
+    public static final String keHuBianMa = "keHuBianMa";
     public static final String keHuJiBie = "keHuJiBie";
     public static final String qiYeGuiMo = "qiYeGuiMo";
     public static final String categoryFirst = "categoryFirst";

@@ -94,7 +94,7 @@ public class CrmGongHaiService extends BaseCommonService {
                 tableData.remove("sourceObjectId");
                 BizObjectModel model = new BizObjectModel(sc_gh, tableData, false);
                 String s = engineService.getBizObjectFacade().saveBizObject(userId, model, false);
-                if (null == s) {
+                if (null != s) {
                     successIds.add(id);
                 }
             }
@@ -134,7 +134,7 @@ public class CrmGongHaiService extends BaseCommonService {
             Map<String, Object> temp = Maps.newHashMap();
             Map<String, Object> formDataMap = formDataList.get(i);
             temp.put(GongHaiModel.keHuMingCheng, formDataMap.get(XianSuoModel.keHuMingCheng));
-            temp.put(GongHaiModel.sequenceNo, formDataMap.get(XianSuoModel.sequenceNo));
+            temp.put(GongHaiModel.keHuBianMa, formDataMap.get(XianSuoModel.keHuBianMa));
             temp.put(GongHaiModel.keHuJiBie, formDataMap.get(XianSuoModel.keHuJiBie));
             temp.put(GongHaiModel.qiYeGuiMo, formDataMap.get(XianSuoModel.qiYeGuiMo));
             temp.put(GongHaiModel.categoryFirst, formDataMap.get(XianSuoModel.categoryFirst));
@@ -146,7 +146,7 @@ public class CrmGongHaiService extends BaseCommonService {
             temp.put(GongHaiModel.keHuJingLiBuMen, formDataMap.get(XianSuoModel.keHuJingLiBuMen));
 
             temp.put(GongHaiModel.dataSource, CrmCommonService.DATASOURCE_XIANSUO);
-            temp.put(GongHaiModel.toGongHaiReason, formDataMap.get(XianSuoModel.toKeHuReason));
+            temp.put(GongHaiModel.toGongHaiReason, formDataMap.get(XianSuoModel.toGongHaiReason));
             temp.put(GongHaiModel.toGongHaiTime, new Date());
 
             // 子表
@@ -154,7 +154,7 @@ public class CrmGongHaiService extends BaseCommonService {
             List<Map<String, Object>> sheetList = Lists.newArrayList();
             for (int j = 0; j < sheetDataList.size(); j++) {
                 Map<String, Object> sheetMap = sheetDataList.get(j);
-                Map<String, Object> t = sheetDataList.get(j);
+                Map<String, Object> t = Maps.newHashMap();
                 t.put(GongHaiModel.sheet_keHuName, sheetMap.get(XianSuoModel.sheet_keHuName));
                 t.put(GongHaiModel.sheet_shouJiHao, sheetMap.get(XianSuoModel.sheet_shouJiHao));
                 t.put(GongHaiModel.sheet_buMen, sheetMap.get(XianSuoModel.sheet_buMen));
@@ -177,7 +177,7 @@ public class CrmGongHaiService extends BaseCommonService {
             Map<String, Object> temp = Maps.newHashMap();
             Map<String, Object> formDataMap = formDataList.get(i);
             temp.put(GongHaiModel.keHuMingCheng, formDataMap.get(KeHuModel.keHuMingCheng));
-            temp.put(GongHaiModel.sequenceNo, formDataMap.get(KeHuModel.sequenceNo));
+            temp.put(GongHaiModel.keHuBianMa, formDataMap.get(KeHuModel.keHuBianMa));
             temp.put(GongHaiModel.keHuJiBie, formDataMap.get(KeHuModel.keHuJiBie));
             temp.put(GongHaiModel.qiYeGuiMo, formDataMap.get(KeHuModel.qiYeGuiMo));
             temp.put(GongHaiModel.categoryFirst, formDataMap.get(KeHuModel.categoryFirst));
@@ -189,7 +189,7 @@ public class CrmGongHaiService extends BaseCommonService {
             temp.put(GongHaiModel.keHuJingLiBuMen, formDataMap.get(KeHuModel.keHuJingLiBuMen));
 
             temp.put(GongHaiModel.dataSource, crmCommonService.DATASOURCE_KEHU);
-            temp.put(GongHaiModel.toGongHaiReason, formDataMap.get(KeHuModel.toKeHuReason));
+            temp.put(GongHaiModel.toGongHaiReason, formDataMap.get(KeHuModel.toGongHaiReason));
             temp.put(GongHaiModel.toGongHaiTime, new Date());
 
             // 子表
@@ -197,7 +197,7 @@ public class CrmGongHaiService extends BaseCommonService {
             List<Map<String, Object>> sheetList = Lists.newArrayList();
             for (int j = 0; j < sheetDataList.size(); j++) {
                 Map<String, Object> sheetMap = sheetDataList.get(j);
-                Map<String, Object> t = sheetDataList.get(j);
+                Map<String, Object> t = Maps.newHashMap();
                 t.put(GongHaiModel.sheet_keHuName, sheetMap.get(KeHuModel.sheet_keHuName));
                 t.put(GongHaiModel.sheet_shouJiHao, sheetMap.get(KeHuModel.sheet_shouJiHao));
                 t.put(GongHaiModel.sheet_buMen, sheetMap.get(KeHuModel.sheet_buMen));

@@ -48,8 +48,6 @@ public class CrmCommonService extends BaseCommonService {
             List<BizObjectModel> formDataList = super.baseQueryFormData(sc_xs, null, columns, filter);
             if (CollectionUtils.isEmpty(formDataList)) {
                 throw new Exception("未查询到数据");
-            } else if (formDataList.size() > 1) {
-                throw new Exception("查询结果异常");
             }
 
             list = formDataList.stream().map(BizObjectModel::getData).collect(Collectors.toList());
@@ -75,8 +73,6 @@ public class CrmCommonService extends BaseCommonService {
             List<BizObjectModel> formDataList = super.baseQueryFormData(sc_kh, null, columns, filter);
             if (CollectionUtils.isEmpty(formDataList)) {
                 throw new Exception("未查询到数据");
-            } else if (formDataList.size() > 1) {
-                throw new Exception("查询结果异常");
             }
 
             list = formDataList.stream().map(BizObjectModel::getData).collect(Collectors.toList());
@@ -102,8 +98,6 @@ public class CrmCommonService extends BaseCommonService {
             List<BizObjectModel> formDataList = super.baseQueryFormData(sc_gh, null, columns, filter);
             if (CollectionUtils.isEmpty(formDataList)) {
                 throw new Exception("未查询到数据");
-            } else if (formDataList.size() > 1) {
-                throw new Exception("查询结果异常");
             }
 
             list = formDataList.stream().map(BizObjectModel::getData).collect(Collectors.toList());
