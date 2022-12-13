@@ -69,8 +69,8 @@ public class CrmKeHuService extends BaseCommonService {
                 // 待插入的数据
                 insertDataList = getInsertDataByXianSuo(formDataList, sc_xs_khlxr, sc_kh_khlxr);
             } else if (CrmCommonService.OPT_SOURCE_GONGHAI.equals(optSource)) {
-                sc_gh = (String)params.get("sc_kh");
-                sc_gh_khlxr = (String)params.get("sc_kh_khlxr");
+                sc_gh = (String)params.get("sc_gh");
+                sc_gh_khlxr = (String)params.get("sc_gh_khlxr");
                 if (StringUtils.isBlank(sc_gh)) {
                     throw new Exception("sc_gh不能为空");
                 }

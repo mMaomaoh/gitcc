@@ -69,8 +69,8 @@ public class CrmXianSuoService extends BaseCommonService {
                 // 待插入的数据
                 insertDataList = getInsertDataByKeHu(formDataList, sc_kh_khlxr, sc_xs_khlxr);
             } else if (CrmCommonService.OPT_SOURCE_GONGHAI.equals(optSource)) {
-                sc_gh = (String)params.get("sc_kh");
-                sc_gh_khlxr = (String)params.get("sc_kh_khlxr");
+                sc_gh = (String)params.get("sc_gh");
+                sc_gh_khlxr = (String)params.get("sc_gh_khlxr");
                 if (StringUtils.isBlank(sc_gh)) {
                     throw new Exception("sc_gh不能为空");
                 }
@@ -81,7 +81,7 @@ public class CrmXianSuoService extends BaseCommonService {
                 List<Map<String, Object>> formDataList =
                     crmCommonService.queryGongHaiDataByObjectIds(sc_gh, sc_gh_khlxr, objectIds);
                 // 待插入的数据
-                insertDataList = getInsertDataByGongHai(formDataList, sc_gh_khlxr, sc_kh_khlxr);
+                insertDataList = getInsertDataByGongHai(formDataList, sc_gh_khlxr, sc_xs_khlxr);
             }
 
             /*
@@ -190,7 +190,7 @@ public class CrmXianSuoService extends BaseCommonService {
 
             temp.put(XianSuoModel.dataSource, CrmCommonService.DATASOURCE_GONGHAI);
             temp.put(XianSuoModel.toXianSuoReason, formDataMap.get(GongHaiModel.toXianSuoReason));
-            temp.put(XianSuoModel.toXianSuoReason, new Date());
+            temp.put(XianSuoModel.toXianSuoTime, new Date());
 
             // 子表
             List<Map<String, Object>> sheetDataList = (List<Map<String, Object>>)formDataMap.get(sheetSource);
