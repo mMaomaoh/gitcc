@@ -164,6 +164,7 @@ public class CrmKeHuService extends BaseCommonService {
             }
             temp.put(sheetTarget, sheetList);
 
+            temp.put(ExtBaseModel.sequenceStatus, CrmCommonService.SEQUENCESTATUS_COMPLETED);
             temp.put("sourceObjectId", formDataMap.get(ExtBaseModel.id));
             insertTableData.add(temp);
         }
@@ -188,7 +189,7 @@ public class CrmKeHuService extends BaseCommonService {
             temp.put(KeHuModel.keHuJingLi, formDataMap.get(GongHaiModel.keHuJingLi));
             temp.put(KeHuModel.keHuJingLiBuMen, formDataMap.get(GongHaiModel.keHuJingLiBuMen));
 
-            temp.put(KeHuModel.dataSource, crmCommonService.DATASOURCE_GONGHAI);
+            temp.put(KeHuModel.dataSource, CrmCommonService.DATASOURCE_GONGHAI);
             temp.put(KeHuModel.toKeHuReason, formDataMap.get(GongHaiModel.toKeHuReason));
             temp.put(KeHuModel.toKeHuTime, new Date());
 
@@ -207,6 +208,7 @@ public class CrmKeHuService extends BaseCommonService {
             }
             temp.put(sheetTarget, sheetList);
 
+            temp.put(ExtBaseModel.sequenceStatus, CrmCommonService.SEQUENCESTATUS_COMPLETED);
             temp.put("sourceObjectId", formDataMap.get(ExtBaseModel.id));
             insertTableData.add(temp);
         }

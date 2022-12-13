@@ -48,7 +48,7 @@ public class CrmConvertController {
         String s = uid.split("-")[4];
         LocalDateTime time = LocalDateTime.now();
         String d = time.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String code = "KH" + d + "-" + s.toUpperCase();
+        String code = "KH-" + d + "-" + s.toUpperCase();
 
         Map<String, Object> data = Maps.newHashMap();
         data.put("data", code);

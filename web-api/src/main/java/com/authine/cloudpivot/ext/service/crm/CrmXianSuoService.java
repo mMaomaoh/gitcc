@@ -164,6 +164,7 @@ public class CrmXianSuoService extends BaseCommonService {
             }
             temp.put(sheetTarget, sheetList);
 
+            temp.put(ExtBaseModel.sequenceStatus, CrmCommonService.SEQUENCESTATUS_COMPLETED);
             temp.put("sourceObjectId", formDataMap.get(ExtBaseModel.id));
             insertTableData.add(temp);
         }
@@ -207,6 +208,7 @@ public class CrmXianSuoService extends BaseCommonService {
             }
             temp.put(sheetTarget, sheetList);
 
+            temp.put(ExtBaseModel.sequenceStatus, CrmCommonService.SEQUENCESTATUS_COMPLETED);
             temp.put("sourceObjectId", formDataMap.get(ExtBaseModel.id));
             insertTableData.add(temp);
         }

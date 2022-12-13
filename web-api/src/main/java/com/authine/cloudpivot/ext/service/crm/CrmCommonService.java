@@ -25,6 +25,8 @@ public class CrmCommonService extends BaseCommonService {
 
     public static final String USERID_ADMIN = "2c9280a26706a73a016706a93ccf002b";
 
+    public static final String SEQUENCESTATUS_COMPLETED = "COMPLETED";
+
     public static final String DATASOURCE_CREATE = "新增";
     public static final String DATASOURCE_GONGHAI = "公海";
     public static final String DATASOURCE_KEHU = "客户";

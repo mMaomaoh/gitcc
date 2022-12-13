@@ -164,6 +164,7 @@ public class CrmGongHaiService extends BaseCommonService {
             }
             temp.put(sheetTarget, sheetList);
 
+            temp.put(ExtBaseModel.sequenceStatus, CrmCommonService.SEQUENCESTATUS_COMPLETED);
             temp.put("sourceObjectId", formDataMap.get(ExtBaseModel.id));
             insertTableData.add(temp);
         }
@@ -188,7 +189,7 @@ public class CrmGongHaiService extends BaseCommonService {
             temp.put(GongHaiModel.keHuJingLi, formDataMap.get(KeHuModel.keHuJingLi));
             temp.put(GongHaiModel.keHuJingLiBuMen, formDataMap.get(KeHuModel.keHuJingLiBuMen));
 
-            temp.put(GongHaiModel.dataSource, crmCommonService.DATASOURCE_KEHU);
+            temp.put(GongHaiModel.dataSource, CrmCommonService.DATASOURCE_KEHU);
             temp.put(GongHaiModel.toGongHaiReason, formDataMap.get(KeHuModel.toGongHaiReason));
             temp.put(GongHaiModel.toGongHaiTime, new Date());
 
@@ -207,6 +208,7 @@ public class CrmGongHaiService extends BaseCommonService {
             }
             temp.put(sheetTarget, sheetList);
 
+            temp.put(ExtBaseModel.sequenceStatus, CrmCommonService.SEQUENCESTATUS_COMPLETED);
             temp.put("sourceObjectId", formDataMap.get(ExtBaseModel.id));
             insertTableData.add(temp);
         }
