@@ -58,14 +58,14 @@ begin
             into iCount
             from INFORMATION_SCHEMA.TABLES
             WHERE TABLE_SCHEMA = database()
-              and table_name LIKE concat('i%_', vSchemaCode);
+              and table_name LIKE concat('i%\_', vSchemaCode);
 
             if iCount = 1 then
                 select TABLE_NAME
                 into iTableName
                 FROM INFORMATION_SCHEMA.TABLES
                 WHERE TABLE_SCHEMA = database()
-                  and table_name LIKE concat('i%_', vSchemaCode);
+                  and table_name LIKE concat('i%\_', vSchemaCode);
 
 -- 更新数据 只保留id
                 set iSql = concat('update ', iTableName, ' set ', vPropertyCode, ' = getSelectionId(',

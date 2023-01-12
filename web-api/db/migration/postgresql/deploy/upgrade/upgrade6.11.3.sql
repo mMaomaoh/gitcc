@@ -56,13 +56,13 @@ begin
     while FOUND
         loop
             -- 判断是否存在i表
-            select count(*) into iCount from pg_tables where tablename like 'i%_' || lower(vSchemaCode);
+            select count(*) into iCount from pg_tables where tablename like 'i%\_' || lower(vSchemaCode);
             if iCount = 0 then
                 fetch properties into vSchemaCode,vPropertyCode;
                 continue;
             end if;
 
-            select tablename into iTableName from pg_tables where tablename like 'i%_' || lower(vSchemaCode);
+            select tablename into iTableName from pg_tables where tablename like 'i%\_' || lower(vSchemaCode);
 
             -- 更新数据
             vSql := 'update ' || iTableName || ' set "' || vPropertyCode || '" = getSelectionId("' || vPropertyCode ||

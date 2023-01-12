@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.authine.cloudpivot</groupId>
     <artifactId>web-api</artifactId>
-    <version>${cloudpivot.version}</version> <!-- 注: 可自定义版本 -->
+    <version>${rversion}</version>
     <name>web-api</name>
     <description>云枢应用脚手架工程 (Web API Spring Boot启动工程)</description>
-    <packaging>${project.packaging}</packaging>
+    <packaging>pom</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -20,26 +20,49 @@
 
         <!-- CloudPivot云枢平台 版本号 -->
         <!-- 升级云枢, 请修改此属性值即可 -->
-        <cloudpivot.version>6.11.7</cloudpivot.version>
+        <cloudpivot.version>6.12.1</cloudpivot.version>
+
+        <!-- 应用的版本号 -->
+        <!-- 默认使用云枢版本号. 可自定义此版本号 -->
+        <rversion>${cloudpivot.version}</rversion>
 
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
 
-        <project.packaging>jar</project.packaging>
-
-        <!-- 该版本号随engine-service版本升级 -->
-        <plugins-sap.version>${cloudpivot.version}</plugins-sap.version>
         <knife4j-spring-ui.version>3.0.3</knife4j-spring-ui.version>
     </properties>
+
+
+    <modules>
+        <module>main</module>
+        <module>modules/airack</module>
+        <module>modules/meeting</module>
+        <module>modules/spi</module>
+    </modules>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>com.authine.cloudpivot.foundation</groupId>
                 <artifactId>cloudpivot-foundation-dependencies</artifactId>
-                <version>1.0.7</version>
+                <version>1.0.8</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.authine.cloudpivot</groupId>
+                <artifactId>airack</artifactId>
+                <version>${rversion}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.authine.cloudpivot</groupId>
+                <artifactId>meeting</artifactId>
+                <version>${rversion}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.authine.cloudpivot</groupId>
+                <artifactId>spi</artifactId>
+                <version>${rversion}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -73,33 +96,6 @@
 
 
         <!-- 扩展依赖包 -->
-        <!-- SAP RFC 协议适配器 -->
-        <dependency>
-            <groupId>com.authine.cloudpivot.engine</groupId>
-            <artifactId>cloudpivot-engine-bizbus-plugins-sap</artifactId>
-            <version>${plugins-sap.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.authine.cloudpivot.foundation</groupId>
-                    <artifactId>cloudpivot-foundation-boot</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.authine.cloudpivot.engine</groupId>
-                    <artifactId>cloudpivot-engine-bizbus-infrastructure</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.authine.cloudpivot.engine</groupId>
-                    <artifactId>cloudpivot-engine-bizbus-spi</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!--        <dependency>-->
-        <!--            <groupId>com.authine.cloudpivot.example</groupId>-->
-        <!--            <artifactId>cloudpivot-plugins-database-xxx</artifactId>-->
-        <!--            <version>${plugins-database-xxx.version}</version>-->
-        <!--        </dependency>-->
-
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-spring-ui</artifactId>
@@ -113,76 +109,40 @@
         <!-- end 扩展依赖包 -->
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>war</id>
-            <properties>
-                <project.packaging>war</project.packaging>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-web</artifactId>
-                    <exclusions>
-                        <exclusion>
-                            <artifactId>spring-boot-starter-tomcat</artifactId>
-                            <groupId>org.springframework.boot</groupId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-            </dependencies>
-
-            <build>
-                <finalName>api</finalName>
-            </build>
-        </profile>
-        <profile>
-            <id>prod</id>
-            <properties>
-                <activatedProperties>prod</activatedProperties>
-            </properties>
-        </profile>
-    </profiles>
-
     <build>
-        <resources>
-            <!-- 处理自行管理的jar包 -->
-            <resource>
-                <directory>${basedir}/lib</directory>
-                <targetPath>BOOT-INF/lib/</targetPath>
-                <includes>
-                    <include>**/*.jar</include>
-                </includes>
-            </resource>
-            <resource>
-                <filtering>true</filtering>
-                <directory>${basedir}\src\main\resources</directory>
-                <includes>
-                    <include>**/application*.yml</include>
-                    <include>**/application*.yaml</include>
-                    <include>**/application*.properties</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>${basedir}\src\main\resources</directory>
-                <excludes>
-                    <exclude>**/application*.yml</exclude>
-                    <exclude>**/application*.yaml</exclude>
-                    <exclude>**/application*.properties</exclude>
-                </excludes>
-            </resource>
-        </resources>
-
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>1.1.0</version>
+                    <configuration>
+                        <updatePomFile>true</updatePomFile>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>flatten</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>flatten</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>flatten.clean</id>
+                            <phase>clean</phase>
+                            <goals>
+                                <goal>clean</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <executable>true</executable>
-                    <!-- <includeSystemScope>true</includeSystemScope> -->
-                    <fork>false</fork>
-                </configuration>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

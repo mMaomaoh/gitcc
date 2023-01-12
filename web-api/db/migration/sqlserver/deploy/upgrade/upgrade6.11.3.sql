@@ -47,7 +47,7 @@ begin
             set @iCount = (select count(*)
                            from INFORMATION_SCHEMA.TABLES
                            where TABLE_TYPE = 'BASE TABLE'
-                             and TABLE_NAME like concat('i%_', @vSchemaCode));
+                             and TABLE_NAME like concat('i%\_', @vSchemaCode) ESCAPE '\');
             if @iCount = 0
                 begin
                     fetch next from properties into @vSchemaCode,@vPropertyCode
@@ -56,7 +56,7 @@ begin
             set @iTableName = (select TABLE_NAME
                                from INFORMATION_SCHEMA.TABLES
                                where TABLE_TYPE = 'BASE TABLE'
-                                 and TABLE_NAME like concat('i%_', @vSchemaCode));
+                                 and TABLE_NAME like concat('i%\_', @vSchemaCode) ESCAPE '\');
 
                             -- 更新数据
             set @sql = 'update ' + @iTableName + ' set ' + @vPropertyCode + ' = dbo.getSelectionId(' +

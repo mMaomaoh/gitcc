@@ -45,7 +45,7 @@ BEGIN
 		fetch properties into vSchemaCode, vPropertyCode;
 		
 		exit when properties%notfound;
-		iCount := (select count(*) from user_tables where table_name like upper(concat('I%_', vSchemaCode)));
+		iCount := (select count(*) from user_tables where table_name like upper(concat('I%\_', vSchemaCode)) ESCAPE '\');
 		if iCount = 0 then
 			continue;
 		end if;	
@@ -53,7 +53,7 @@ BEGIN
 		columnName := '"' || vPropertyCode || '"';
 		newColumnName := '"' || vPropertyCode || '__TEMP"';
 		
-		iTableName := (select table_name from user_tables where table_name like upper(concat('I%_', vSchemaCode))); 
+		iTableName := (select table_name from user_tables where table_name like upper(concat('I%\_', vSchemaCode)) ESCAPE '\');
 		
 		vSql := 'alter table ' || iTableName || ' add ' || newColumnName || ' varchar(200);';
 		print(vSql);

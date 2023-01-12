@@ -1,5 +1,5 @@
 HELP.md
-/target/
+target/
 /bin/
 !.mvn/wrapper/maven-wrapper.jar
 
@@ -35,7 +35,9 @@ mvnw.cmd
 .metals
 
 logs
-/src/main/resources/application-my.yml
+/main/src/main/resources/application-my.yml
 
 node_modules
 package-lock.json
+
+.flattened-pom.xml

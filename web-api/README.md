@@ -3,18 +3,43 @@
 云枢应用脚手架工程 (Web API Spring Boot启动工程)
 
 ## 工程结构说明
+```
+├─db                    #部署SQL迁移脚本
+├─lib                   #自行管理的jar包
+├─main                  #主工程
+│  ├─src 
+│     ├─main
+│        ├─java                                #源代码
+│           ├─app   
+│              ├─configuration                 #配置层
+│              ├─controller                    #适配器层
+│              ├─infrastructure                #基础设施层
+│              └─WebApiBootStartupApplication  #程序入口类
+├─modules               #拓展模块目录
+│  ├─airack             #ai货架示例模块
+│     ├─src 
+│        ├─main
+│           ├─java   
+│              ├─application                   #应用层（业务服务）
+│              ├─configuration                 #配置层
+│              ├─controller                    #适配器层
+│              ├─domain                        #领域层
+│              └─infrastructure                #基础设施层
+│  └─meeting            #会议系统示例模块
+│     ├─src 
+│        ├─main
+│           ├─java   
+│              ├─application                   #应用层（业务服务）
+│              ├─configuration                 #配置层
+│              ├─controller                    #适配器层
+│              ├─domain                        #领域层
+│              └─infrastructure                #基础设施层
 
-* `src/main/resources/application.yml`       应用默认配置
+```
 
 * `src/main/resources/application-local.yml` 本地开发环境配置 (覆盖默认配置)
 
 * `src/main/resources/application-prod.yml`  生产环境配置 (覆盖默认配置)
-
-* `src/main/java/com/authine/cloudpivot/WebApiBootStartupApplication.java` 启动主类
-
-* `db/migration/**/deploy/**/*.sql` 部署SQL迁移脚本
-
-* `lib/*` 自行管理的jar包
 
 ## 准备开发环境
 
@@ -45,21 +70,22 @@ $ mvn -U clean package
 
 ```shell
 $ mvn clean package
-$ java -jar target/webapi-${version}.jar
-$ java -Dspring.profiles.active=local -jar target/webapi-${version}.jar
+$ java -jar target/web-api-${version}.jar
+$ java -Dspring.profiles.active=local -jar target/web-api-${version}.jar
 $ java -Dspring.profiles.active=prod -Dserver.port=8090 -jar target/web-api-6.4.1-SNAPSHOT.jar
 ```
 
 * 通过Spring Boot Maven插件运行
 
 ```shell
-$ mvn spring-boot:run
-$ mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=prod
-$ mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=prod,--server.port=8199
+$ mvn clean install
+$ mvn spring-boot:run -pl com.authine.cloudpivot:main
+$ mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=prod -pl com.authine.cloudpivot:main
+$ mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=prod,--server.port=8199 -pl com.authine.cloudpivot:main
 ```
 
 ```powershell
-$ mvn spring-boot:run -D"spring-boot.run.arguments=--spring.profiles.active=local"
+$ mvn spring-boot:run -D"spring-boot.run.arguments=--spring.profiles.active=local" -pl com.authine.cloudpivot:main
 ```
 ### 通过npm 运行常用命令
 

@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "local": "cross-env MAVEN_OPTS='-Dfile.encoding=utf-8' mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=local",
-    "prod": "cross-env MAVEN_OPTS='-Dfile.encoding=utf-8' mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=prod",
+    "local": "cross-env MAVEN_OPTS='-Dfile.encoding=utf-8' mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=local -pl com.authine.cloudpivot:main",
+    "prod": "cross-env MAVEN_OPTS='-Dfile.encoding=utf-8' mvn spring-boot:run -Dspring-boot.run.arguments=--spring.profiles.active=prod -pl com.authine.cloudpivot:main",
     "start": "npm run local",
     "compile": "mvn clean compile -U",
     "build": "mvn clean package -U",

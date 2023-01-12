@@ -55,7 +55,7 @@ create table biz_circulateitem
     timeoutStrategy   varchar2(20)  null,
     timeoutWarn1      timestamp          null,
     timeoutWarn2      timestamp          null,
-    usedtime          int           null,
+    usedtime          number(20)           null,
     workItemType      varchar2(20)  null,
     workItemTypeValue int           null,
     workflowCode      varchar2(36)  null,
@@ -89,7 +89,7 @@ create table biz_circulateitem_finished
     timeoutStrategy   varchar2(20)  null,
     timeoutWarn1      timestamp          null,
     timeoutWarn2      timestamp          null,
-    usedtime          int           null,
+    usedtime          number(20)           null,
     workItemType      varchar2(20)  null,
     workItemTypeValue int           null,
     workflowCode      varchar2(36)  null,
@@ -159,7 +159,7 @@ create table biz_workflow_instance
     remark           varchar2(200) null,
     state            varchar2(20)  null,
     stateValue       int           null,
-    usedTime         int           null,
+    usedTime         number(20)           null,
     waitTime         int           null,
     workflowCode     varchar2(200) null,
     workflowTokenId  varchar2(36)  null,
@@ -189,7 +189,7 @@ create table biz_workflow_token
     state              varchar2(20)  null,
     stateValue         int           null,
     tokenId            int           null,
-    usedtime           int           null
+    usedtime           number(20)           null
 );
 create table biz_workitem
 (
@@ -218,7 +218,7 @@ create table biz_workitem
     timeoutStrategy   varchar2(20)  null,
     timeoutWarn1      timestamp          null,
     timeoutWarn2      timestamp          null,
-    usedtime          int           null,
+    usedtime          number(20)           null,
     workItemType      varchar2(20)  null,
     workItemTypeValue int           null,
     workflowCode      varchar2(36)  null,
@@ -254,7 +254,7 @@ create table biz_workitem_finished
     timeoutStrategy   varchar2(20)  null,
     timeoutWarn1      timestamp          null,
     timeoutWarn2      timestamp          null,
-    usedtime          int           null,
+    usedtime          number(20)           null,
     workItemType      varchar2(20)  null,
     workItemTypeValue int           null,
     workflowCode      varchar2(36)  null,

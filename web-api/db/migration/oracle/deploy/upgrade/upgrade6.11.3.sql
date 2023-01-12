@@ -42,26 +42,35 @@ begin
             SELECT COUNT(*)
             INTO iCount
             FROM USER_TABLES
-            where TABLE_NAME like upper(CONCAT('I%_', properties.SCHEMACODE))
-              and TABLESPACE_NAME = 'USERS';
+            where TABLESPACE_NAME = 'USERS'
+              AND TABLE_NAME like upper(CONCAT('I%\_', properties.SCHEMACODE)) ESCAPE '\';
             IF iCount = 0 THEN
                 CONTINUE;
             END IF;
             SELECT TABLE_NAME
             INTO iTableName
             FROM ALL_TABLES
-            where TABLE_NAME like upper(CONCAT('I%_', properties.SCHEMACODE))
-              and TABLESPACE_NAME = 'USERS';
+            where TABLESPACE_NAME = 'USERS'
+              AND TABLE_NAME like upper(CONCAT('I%\_', properties.SCHEMACODE)) ESCAPE '\';
 
             DBMS_OUTPUT.PUT_LINE(iTableName);
 
             -- 默认为大小写敏感
             columnName := '"' || properties.CODE || '"';
-            newColumnName := '"' || properties.CODE || '__TEMP"';
+            if length(properties.CODE) > 20 then
+                newColumnName := '"' || substr(properties.CODE,1,20) || '__TEMP"';
+            else
+                newColumnName := '"' || properties.CODE || '__TEMP"';
+            end if;
+
             -- 大小写不敏感时需转换成大写
             if sensitive = 0 then
                 select upper(properties.CODE) into columnName from dual;
-                select upper(properties.CODE) || '__TEMP' into newColumnName from dual;
+                if length(properties.CODE) > 20 then
+                    select upper(substr(properties.CODE,1,20)) || '__TEMP' into newColumnName from dual;
+                else
+                    select upper(properties.CODE) || '__TEMP' into newColumnName from dual;
+                end if;
             end if;
             DBMS_OUTPUT.PUT_LINE(columnName);
             DBMS_OUTPUT.PUT_LINE(newColumnName);
