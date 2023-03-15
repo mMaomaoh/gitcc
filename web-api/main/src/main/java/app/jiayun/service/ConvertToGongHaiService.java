@@ -41,6 +41,8 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
             String userId = (String)params.get("userId");
             String objectId = (String)params.get("objectId");
             String genJinType = (String)params.get("genJinType");
+            String xs_objId = (String)params.get("xs_objId");
+            String kh_objId = (String)params.get("kh_objId");
 
             /*
              * （1）往公海新增一条数据-成功获取数据ID
@@ -48,9 +50,8 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
             String dataId = null;
             if (genJinType.equals("线索")) {
                 // 1、查询线索表数据
-                List<Map<String, Object>> list = queryXianSuoByObjectId(objectId);
+                List<Map<String, Object>> list = queryXianSuoByObjectId(xs_objId);
                 Map<String, Object> map = list.get(0);
-                String xsid = (String)map.get("id");
                 // 2、往公海新增一条数据-成功获取数据ID
                 Map<String, Object> insertMap = getInsertData(genJinType, map);
                 dataId = insertToGongHai("JiaYun_ShiChangXianSuo", userId, insertMap);
@@ -63,13 +64,12 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
 
                 // 4、删除线索表数据
                 if (StringUtils.isNotBlank(resultStr)) {
-                    engineService.getBizObjectFacade().deleteBizObject("JiaYun_ShiChangXianSuo", xsid);
+                    engineService.getBizObjectFacade().deleteBizObject("JiaYun_ShiChangXianSuo", xs_objId);
                 }
             } else if (genJinType.equals("客户")) {
                 // 1、查询客户表数据
-                List<Map<String, Object>> list = queryKeHuByObjectId(objectId);
+                List<Map<String, Object>> list = queryKeHuByObjectId(kh_objId);
                 Map<String, Object> map = list.get(0);
-                String khid = (String)map.get("id");
 
                 // 2、往公海新增一条数据-成功获取数据ID
                 Map<String, Object> insertMap = getInsertData(genJinType, map);
@@ -81,9 +81,9 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
                 updateMap.put("dataId", dataId);
                 String resultStr = updateGenJin(userId, genJinType, params);
 
-                // 4、删除线索表数据
+                // 4、删除客户表数据
                 if (StringUtils.isNotBlank(resultStr)) {
-                    engineService.getBizObjectFacade().deleteBizObject("JiaYun_KeHuGuanLi", khid);
+                    engineService.getBizObjectFacade().deleteBizObject("JiaYun_KeHuGuanLi", kh_objId);
                 }
             } else {
                 log.error("[jiayun-bus]：转公海异常：跟进类型未匹配");

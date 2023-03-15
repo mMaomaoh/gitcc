@@ -3,7 +3,6 @@ package app.jiayun.controller;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,12 +44,20 @@ public class ConvertToGongHaiController extends BaseController {
         try {
             String objectId = (String)params.get("objectId");
             String genJinType = (String)params.get("genJinType");
-            List<Map<String, Object>> user = (List<Map<String, Object>>)params.get("userId");
+            String xs_objId = (String)params.get("xs_objId");
+            String kh_objId = (String)params.get("kh_objId");
 
-            if (CollectionUtils.isEmpty(user)) {
+            Object obj = params.get("userId");
+            String userId = null;
+            if (obj instanceof List) {
+                List<Map<String, Object>> user = (List<Map<String, Object>>)params.get("userId");
+                userId = (String)user.get(0).get("id");
+            } else {
+                userId = obj.toString();
+            }
+            if (StringUtils.isEmpty(userId)) {
                 return ResponseResultUtils.getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "userId不能为空");
             }
-            String userId = (String)user.get(0).get("id");
             params.put("userId", userId);
 
             if (StringUtils.isEmpty(objectId)) {
@@ -60,6 +67,14 @@ public class ConvertToGongHaiController extends BaseController {
             if (StringUtils.isBlank(genJinType)) {
                 return ResponseResultUtils
                     .getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "genJinType不能为空");
+            }
+            if (StringUtils.isEmpty(xs_objId)) {
+                return ResponseResultUtils
+                    .getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "xs_objId不能为空");
+            }
+            if (StringUtils.isEmpty(kh_objId)) {
+                return ResponseResultUtils
+                    .getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "kh_objId不能为空");
             }
 
             ResponseResult<Map<String, Object>> result = bizServiceApi.convertToGongHai(params);
