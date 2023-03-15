@@ -1,7 +1,9 @@
 package app.jiayun.controller;
 
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Api(value = "JIAYUN::客户跟进转公海", tags = "JIAYUN::客户跟进转公海")
 @RestController
-@RequestMapping("/jiayun/biz")
+@RequestMapping("/jiayun/bus")
 @Slf4j
 public class ConvertToGongHaiController extends BaseController {
 
@@ -39,10 +41,17 @@ public class ConvertToGongHaiController extends BaseController {
     @PostMapping("/genJinToGongHai")
     @ResponseBody
     public ResponseResult<Map<String, Object>> toKeHu(@RequestBody Map<String, Object> params) {
-        log.info("[jiayun-biz]：从跟进记录转公海开始， params={}", params);
+        log.info("[jiayun-bus]：从跟进记录转公海开始， params={}", params);
         try {
             String objectId = (String)params.get("objectId");
             String genJinType = (String)params.get("genJinType");
+            List<Map<String, Object>> user = (List<Map<String, Object>>)params.get("userId");
+
+            if (CollectionUtils.isEmpty(user)) {
+                return ResponseResultUtils.getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "userId不能为空");
+            }
+            String userId = (String)user.get(0).get("id");
+            params.put("userId", userId);
 
             if (StringUtils.isEmpty(objectId)) {
                 return ResponseResultUtils
@@ -54,7 +63,7 @@ public class ConvertToGongHaiController extends BaseController {
             }
 
             ResponseResult<Map<String, Object>> result = bizServiceApi.convertToGongHai(params);
-            log.info("[jiayun-biz]从跟进记录转公海结束...");
+            log.info("[jiayun-bus]从跟进记录转公海结束...");
             return result;
         } catch (Exception e) {
             return ResponseResultUtils.getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), e.getMessage());
