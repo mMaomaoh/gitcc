@@ -79,6 +79,7 @@ public class ResourceConfig extends ResourceServerConfigurerAdapter {
 //            http.headers().cacheControl().disable();
             http.authorizeRequests()
                     // swagger start
+                    .antMatchers("/jiayun/biz/**").permitAll()
                     .antMatchers("/ext/hrm/attendance/**").permitAll()
                     .antMatchers("/ext/crm/convert/**").permitAll()
                     .antMatchers("/swagger-ui/**").permitAll()
