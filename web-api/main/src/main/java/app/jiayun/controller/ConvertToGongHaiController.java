@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Api(value = "JIAYUN::客户跟进转公海", tags = "JIAYUN::客户跟进转公海")
 @RestController
-@RequestMapping("/jiayun/bus")
+@RequestMapping("/jiayun/bus1")
 @Slf4j
 public class ConvertToGongHaiController extends BaseController {
 
