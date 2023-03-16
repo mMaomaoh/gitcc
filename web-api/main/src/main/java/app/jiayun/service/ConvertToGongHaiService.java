@@ -54,13 +54,13 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
                 Map<String, Object> map = list.get(0);
                 // 2、往公海新增一条数据-成功获取数据ID
                 Map<String, Object> insertMap = getInsertData(genJinType, map);
-                dataId = insertToGongHai("JiaYun_GongHaiGuanLi", userId, insertMap);
+                dataId = insertToGongHai(userId, insertMap);
 
                 // 3、跟进记录表更新
                 Map<String, Object> updateMap = Maps.newHashMap();
                 updateMap.put("id", objectId);
                 updateMap.put("dataId", dataId);
-                String resultStr = updateGenJin(userId, genJinType, params);
+                String resultStr = updateGenJin(userId, genJinType, updateMap);
 
                 // 4、删除线索表数据
                 if (StringUtils.isNotBlank(resultStr)) {
@@ -73,18 +73,18 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
 
                 // 2、往公海新增一条数据-成功获取数据ID
                 Map<String, Object> insertMap = getInsertData(genJinType, map);
-                dataId = insertToGongHai("JiaYun_GongHaiGuanLi", userId, insertMap);
+                dataId = insertToGongHai(userId, insertMap);
 
                 // 3、跟进记录表更新
                 Map<String, Object> updateMap = Maps.newHashMap();
                 updateMap.put("id", objectId);
                 updateMap.put("dataId", dataId);
-                String resultStr = updateGenJin(userId, genJinType, params);
+                String resultStr = updateGenJin(userId, genJinType, updateMap);
 
                 // 4、删除客户表数据
-                if (StringUtils.isNotBlank(resultStr)) {
-                    engineService.getBizObjectFacade().deleteBizObject("JiaYun_KeHuGuanLi", kh_objId);
-                }
+                // if (StringUtils.isNotBlank(resultStr)) {
+                // engineService.getBizObjectFacade().deleteBizObject("JiaYun_KeHuGuanLi", kh_objId);
+                // }
             } else {
                 log.error("[jiayun-bus]：转公海异常：跟进类型未匹配");
                 return ResponseResultUtils.getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "跟进类型未匹配");
@@ -167,11 +167,11 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
         return list;
     }
 
-    private String insertToGongHai(String schemaCode, String userId, Map<String, Object> dataMap) throws Exception {
+    private String insertToGongHai(String userId, Map<String, Object> dataMap) throws Exception {
         if (MapUtils.isEmpty(dataMap)) {
             throw new Exception("待新增的数据为空");
         }
-        BizObjectModel model = new BizObjectModel(schemaCode, dataMap, false);
+        BizObjectModel model = new BizObjectModel("JiaYun_GongHaiGuanLi", dataMap, false);
         String objectId = engineService.getBizObjectFacade().saveBizObject(userId, model, false);
         return objectId;
     }
@@ -180,10 +180,11 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
         // map是公海表数据，data是线索或者客户查出来的数据
         Map<String, Object> map = new HashMap<>();
         if (type.equals("线索")) {
+            map.put("shuJuLaiYuan", "线索");
             map.put("keHuName", data.get("keHuName"));
             map.put("xinYongCode", data.get("xinYongCode"));
             map.put("keHuBianHao", data.get("keHuBianHao"));
-            map.put("keHuManager", data.get("keHuName"));
+            // map.put("keHuManager", data.get("keHuName"));
             map.put("hangYeFenLei", data.get("hangYeFenLei"));
             map.put("juTiHangYe", data.get("juTiHangYe"));
             map.put("qiYeGuiMo", data.get("qiYeGuiMo"));
@@ -191,6 +192,7 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
             map.put("qiYeLianXiRenZhiWei", data.get("qiYeLianXiRenZhiWei"));
             map.put("keHuAddress", data.get("keHuAddress"));
         } else if (type.equals("客户")) {
+            map.put("shuJuLaiYuan", "客户");
             map.put("keHuName", data.get("keHuName"));
             map.put("xinYongCode", data.get("xinYongCode"));
             map.put("keHuBianHao", data.get("keHuBianHao"));
@@ -217,24 +219,18 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
             map.put("keHuJuJianRen", data.get("keHuJuJianRen"));
             map.put("keHuJuJianRenZhiWei", data.get("keHuJuJianRenZhiWei"));
             map.put("juJianRenDianHua", data.get("juJianRenDianHua"));
+
+            map.put("relevanceKeHu", data.get("id"));
         }
         return map;
     }
 
     private String updateGenJin(String userId, String type, Map<String, Object> params) throws Exception {
-        String schemaCode = null;
         Map<String, Object> tableData = Maps.newHashMap();
         tableData.put("id", params.get("id"));
+        tableData.put("guanLianGongHai", params.get("dataId"));
 
-        if (type.equals("线索")) {
-            schemaCode = "";
-            tableData.put("guanLianGongHaiXS", params.get("dataId"));
-        } else if (type.equals("客户")) {
-            tableData.put("guanLianGongHaiKH", params.get("dataId"));
-            schemaCode = "";
-        }
-
-        BizObjectModel model = new BizObjectModel(schemaCode, tableData, false);
+        BizObjectModel model = new BizObjectModel("JiaYun_KeHuGenJin", tableData, false);
         String result = engineService.getBizObjectFacade().saveBizObject(userId, model, true);
 
         log.debug("[jiayun-bus] 跟进记录更新完成，result={}", result);
