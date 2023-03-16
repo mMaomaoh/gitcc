@@ -171,6 +171,7 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
         if (MapUtils.isEmpty(dataMap)) {
             throw new Exception("待新增的数据为空");
         }
+        dataMap.put("sequenceStatus", "COMPLETED");
         BizObjectModel model = new BizObjectModel("JiaYun_GongHaiGuanLi", dataMap, false);
         String objectId = engineService.getBizObjectFacade().saveBizObject(userId, model, false);
         return objectId;
