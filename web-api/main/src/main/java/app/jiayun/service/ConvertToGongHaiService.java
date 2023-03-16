@@ -54,7 +54,7 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
                 Map<String, Object> map = list.get(0);
                 // 2、往公海新增一条数据-成功获取数据ID
                 Map<String, Object> insertMap = getInsertData(genJinType, map);
-                dataId = insertToGongHai("JiaYun_ShiChangXianSuo", userId, insertMap);
+                dataId = insertToGongHai("JiaYun_GongHaiGuanLi", userId, insertMap);
 
                 // 3、跟进记录表更新
                 Map<String, Object> updateMap = Maps.newHashMap();
@@ -73,7 +73,7 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
 
                 // 2、往公海新增一条数据-成功获取数据ID
                 Map<String, Object> insertMap = getInsertData(genJinType, map);
-                dataId = insertToGongHai("JiaYun_KeHuGuanLi", userId, insertMap);
+                dataId = insertToGongHai("JiaYun_GongHaiGuanLi", userId, insertMap);
 
                 // 3、跟进记录表更新
                 Map<String, Object> updateMap = Maps.newHashMap();
