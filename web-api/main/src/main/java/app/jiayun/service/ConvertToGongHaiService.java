@@ -184,11 +184,12 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
             map.put("keHuName", data.get("keHuName"));
             map.put("xinYongCode", data.get("xinYongCode"));
             map.put("keHuBianHao", data.get("keHuBianHao"));
-            // map.put("keHuManager", data.get("keHuName"));
+            map.put("keHuManager", data.get("keHuManager"));
             map.put("hangYeFenLei", data.get("hangYeFenLei"));
             map.put("juTiHangYe", data.get("juTiHangYe"));
             map.put("qiYeGuiMo", data.get("qiYeGuiMo"));
             map.put("qiYeLianXiRen", data.get("qiYeLianXiRen"));
+            map.put("lianXiDianHua", data.get("lianXiDianHua"));
             map.put("qiYeLianXiRenZhiWei", data.get("qiYeLianXiRenZhiWei"));
             map.put("keHuAddress", data.get("keHuAddress"));
         } else if (type.equals("客户")) {
@@ -219,7 +220,8 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
             map.put("keHuJuJianRen", data.get("keHuJuJianRen"));
             map.put("keHuJuJianRenZhiWei", data.get("keHuJuJianRenZhiWei"));
             map.put("juJianRenDianHua", data.get("juJianRenDianHua"));
-
+            map.put("keHuZhuYinYeWu", data.get("keHuZhuYinYeWu"));
+            map.put("keHuAddress", data.get("keHuAddress"));
             map.put("relevanceKeHu", data.get("id"));
         }
         return map;
