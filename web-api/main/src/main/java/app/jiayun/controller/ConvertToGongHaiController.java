@@ -68,13 +68,16 @@ public class ConvertToGongHaiController extends BaseController {
                 return ResponseResultUtils
                     .getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "genJinType不能为空");
             }
-            if (StringUtils.isEmpty(xs_objId)) {
-                return ResponseResultUtils
-                    .getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "xs_objId不能为空");
-            }
-            if (StringUtils.isEmpty(kh_objId)) {
-                return ResponseResultUtils
-                    .getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "kh_objId不能为空");
+            if (genJinType.equals("线索")) {
+                if (StringUtils.isEmpty(xs_objId)) {
+                    return ResponseResultUtils
+                        .getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "xs_objId不能为空");
+                }
+            } else if (genJinType.equals("客户")) {
+                if (StringUtils.isEmpty(kh_objId)) {
+                    return ResponseResultUtils
+                        .getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), "kh_objId不能为空");
+                }
             }
 
             ResponseResult<Map<String, Object>> result = bizServiceApi.convertToGongHai(params);
