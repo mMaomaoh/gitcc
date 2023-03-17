@@ -81,7 +81,7 @@ public class ConvertToGongHaiController extends BaseController {
             }
 
             ResponseResult<Map<String, Object>> result = bizServiceApi.convertToGongHai(params);
-            log.info("[jiayun-bus]从跟进记录转公海结束...");
+            log.info("[jiayun-bus]：从跟进记录转公海结束...");
             return result;
         } catch (Exception e) {
             return ResponseResultUtils.getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), e.getMessage());

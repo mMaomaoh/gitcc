@@ -60,7 +60,7 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
                 Map<String, Object> updateMap = Maps.newHashMap();
                 updateMap.put("id", objectId);
                 updateMap.put("dataId", dataId);
-                String resultStr = updateGenJin(userId, genJinType, updateMap);
+                String resultStr = updateGenJin(userId, updateMap);
 
                 // 4、删除线索表数据
                 if (StringUtils.isNotBlank(resultStr)) {
@@ -79,7 +79,7 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
                 Map<String, Object> updateMap = Maps.newHashMap();
                 updateMap.put("id", objectId);
                 updateMap.put("dataId", dataId);
-                String resultStr = updateGenJin(userId, genJinType, updateMap);
+                String resultStr = updateGenJin(userId, updateMap);
 
                 // 4、删除客户表数据
                 // if (StringUtils.isNotBlank(resultStr)) {
@@ -228,15 +228,17 @@ public class ConvertToGongHaiService extends JiayunBizCommonService {
         return map;
     }
 
-    private String updateGenJin(String userId, String type, Map<String, Object> params) throws Exception {
+    private String updateGenJin(String userId, Map<String, Object> params) throws Exception {
         Map<String, Object> tableData = Maps.newHashMap();
         tableData.put("id", params.get("id"));
         tableData.put("guanLianGongHai", params.get("dataId"));
 
+        log.debug("[jiayun-bus]：aaaaa，tableData={}", tableData);
+
         BizObjectModel model = new BizObjectModel("JiaYun_KeHuGenJin", tableData, false);
         String result = engineService.getBizObjectFacade().saveBizObject(userId, model, true);
 
-        log.debug("[jiayun-bus] 跟进记录更新完成，result={}", result);
+        log.debug("[jiayun-bus]：跟进记录更新完成，result={}", result);
 
         return result;
     }
