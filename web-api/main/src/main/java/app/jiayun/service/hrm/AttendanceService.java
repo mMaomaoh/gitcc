@@ -20,6 +20,7 @@ import com.authine.cloudpivot.engine.api.model.organization.UserModel;
 import com.authine.cloudpivot.engine.api.model.runtime.BizObjectModel;
 import com.authine.cloudpivot.engine.api.model.system.RelatedCorpSettingModel;
 import com.authine.cloudpivot.engine.enums.ErrCode;
+import com.authine.cloudpivot.engine.enums.status.SequenceStatus;
 import com.authine.cloudpivot.engine.enums.type.UserWorkStatus;
 import com.authine.cloudpivot.web.api.view.ResponseResult;
 import com.google.common.collect.Lists;
@@ -203,18 +204,48 @@ public class AttendanceService extends JiayunCommonService {
 
                 Map<String, Object> dataMap = new HashMap<>();
                 dataMap.putAll(object);
+
                 dataMap.put("creater", uid);
+                dataMap.put("sequenceStatus", SequenceStatus.CANCELED);
                 dataMap.put("userName", uid);
                 dataMap.put("userDept", udeptId);
                 dataMap.put("dakaTimes", date);
                 dataMap.put("belongOrg", belongOrg);
-                BizObjectModel model = new BizObjectModel(schemaCode, dataMap, false);
-                modelList.add(model);
+
+                dataMap.put("waichuTimes", 0);
+                dataMap.put("qingJiaTimes", 0);
+                dataMap.put("tiaoxXiuTimes", 0);
+
+                String attendResult = object.getString("attend_result");
+                if (attendResult.indexOf("外出") > -1) {
+                    dataMap.put("waichuTimes", 1);
+                }
+                if (attendResult.indexOf("假") > -1) {
+                    dataMap.put("qingJiaTimes", 1);
+                }
+                if (attendResult.indexOf("调休") > -1) {
+                    dataMap.put("tiaoxXiuTimes", 1);
+                }
+
+                if (attendResult.equals("正常")) {
+                    dataMap.put("attendResultMark", "正常");
+                } else if (attendResult.equals("休息")) {
+                    dataMap.put("attendResultMark", "休息");
+                } else {
+                    dataMap.put("attendResultMark", "其它");
+                }
+
+                // 只保存出勤和应出勤大于0的，同时为0表示可能未在考勤组或不需要打卡
+                int a = object.getIntValue("attendance_days");
+                int b = object.getIntValue("should_attendance_days");
+                if (0 != a || 0 != b) {
+                    BizObjectModel model = new BizObjectModel(schemaCode, dataMap, false);
+                    modelList.add(model);
+                }
             }
         }
 
         List<String> result = engineService.getBizObjectFacade().addBizObjects(true, this.ADMIN_USER, modelList, null);
-        // String result = engineService.getBizObjectFacade().saveBizObject(key, model, true);
         return result;
     }
 
@@ -257,7 +288,7 @@ public class AttendanceService extends JiayunCommonService {
         String start = new SimpleDateFormat("yyyy-MM-dd").format(new Date(c)) + " 00:00:00";
 
         // return new String[] {start, end};
-        return new String[] {"2023-04-17 00:00:00", "2023-04-19 23:59:59"};
+        return new String[] {"2023-04-11 00:00:00", "2023-04-19 23:59:59"};
     }
 
 }
