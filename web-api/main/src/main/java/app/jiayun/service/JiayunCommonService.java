@@ -29,10 +29,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
-public class JiayunBizCommonService {
+public class JiayunCommonService {
 
     @Autowired
     protected EngineService engineService;
+
+    protected String ADMIN_USER = "2c9280a26706a73a016706a93ccf002b";
 
     // @Autowired
     // private RedisTemplate<String, Object> redisTemplate;
@@ -82,11 +84,12 @@ public class JiayunBizCommonService {
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
-    public List<BizObjectModel> baseQueryFormData(String schemaCode, String queryCode, List<String> columns,
-        FilterExpression filter) throws Exception {
+    public
+        List<BizObjectModel>
+            baseQueryFormData(String schemaCode, String queryCode, List<String> columns, FilterExpression filter)
+                throws Exception {
         log
-            .info("baseQueryFormData start..., schemaCode={}, queryCode={}, columns={}, filter={}", schemaCode,
-                  queryCode, columns, filter);
+            .info("baseQueryFormData start..., schemaCode={}, queryCode={}, columns={}, filter={}", schemaCode, queryCode, columns, filter);
         BizObjectQueryModel.Options options = new BizObjectQueryModel.Options();
         options.setQueryDisplayType(QueryDisplayType.APPEND);
         options.setCustomDisplayColumns(columns);

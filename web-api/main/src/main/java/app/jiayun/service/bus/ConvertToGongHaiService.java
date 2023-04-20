@@ -1,4 +1,4 @@
-package app.jiayun.service;
+package app.jiayun.service.bus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import app.ext.util.ResponseResultUtils;
+import app.jiayun.service.JiayunCommonService;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
-public class ConvertToGongHaiService extends JiayunBizCommonService {
+public class ConvertToGongHaiService extends JiayunCommonService {
 
     public ResponseResult<Map<String, Object>> convertToGongHai(Map<String, Object> params) {
         try {

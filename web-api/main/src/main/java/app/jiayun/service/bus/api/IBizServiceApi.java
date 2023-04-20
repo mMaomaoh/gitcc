@@ -1,4 +1,4 @@
-package app.jiayun.service.api;
+package app.jiayun.service.bus.api;
 
 import java.util.Map;
 

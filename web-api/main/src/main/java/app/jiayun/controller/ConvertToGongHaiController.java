@@ -16,7 +16,7 @@ import com.authine.cloudpivot.web.api.controller.base.BaseController;
 import com.authine.cloudpivot.web.api.view.ResponseResult;
 
 import app.ext.util.ResponseResultUtils;
-import app.jiayun.service.api.IBizServiceApi;
+import app.jiayun.service.bus.api.IBizServiceApi;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
