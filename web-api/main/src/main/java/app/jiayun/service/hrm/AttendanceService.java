@@ -18,7 +18,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.authine.cloudpivot.engine.api.model.organization.DepartmentModel;
 import com.authine.cloudpivot.engine.api.model.organization.UserModel;
 import com.authine.cloudpivot.engine.api.model.runtime.BizObjectModel;
+import com.authine.cloudpivot.engine.api.model.runtime.SelectionValue;
 import com.authine.cloudpivot.engine.api.model.system.RelatedCorpSettingModel;
+import com.authine.cloudpivot.engine.component.query.api.FilterExpression;
 import com.authine.cloudpivot.engine.enums.ErrCode;
 import com.authine.cloudpivot.engine.enums.status.SequenceStatus;
 import com.authine.cloudpivot.engine.enums.type.UserWorkStatus;
@@ -161,10 +163,13 @@ public class AttendanceService extends JiayunCommonService {
                 }
                 recordObject.put(userId, colValueMap);
             }
-            System.out.println(recordObject);
 
             // 保存到表单
-            List<String> result = saveToForm(schemaCode, recordObject, userMap, userDeptMap);
+            List<BizObjectModel> tempList = getSaveData(schemaCode, recordObject, userMap, userDeptMap);
+            List<BizObjectModel> recordList = getAttendanceRecord(fromDate, toDate);
+
+            List<BizObjectModel> modelList = buildSaveData(tempList, recordList);
+            List<String> result = saveToForm(modelList);
             return ResponseResultUtils.getOkResponseResult(result, "操作成功");
         } catch (Exception e) {
             log.error("[jiayun-hrm]：获取钉钉考勤异常：{}", e.toString());
@@ -173,7 +178,36 @@ public class AttendanceService extends JiayunCommonService {
         }
     }
 
-    private List<String> saveToForm(
+    private List<BizObjectModel> buildSaveData(List<BizObjectModel> inteList, List<BizObjectModel> recoList) {
+
+        List<BizObjectModel> result = Lists.newArrayList();
+        List<JSONObject> result1 = Lists.newArrayList();
+
+        for (int i = 0; i < inteList.size(); i++) {
+            BizObjectModel model = inteList.get(i);
+            Map<String, Object> d1 = model.getData();
+            String uid1 = (String)d1.get("userName");
+            String dkTimes1 = (String)d1.get("dakaTimes");
+
+            for (int k = 0; k < recoList.size(); k++) {
+                Map<String, Object> d2 = recoList.get(k).getData();
+                List<SelectionValue> u = (List<SelectionValue>)d2.get("userName");
+                String uid2 = u.get(0).getId();
+                String dkTimes2 = (String)d1.get("dakaTimes");
+                // 数据库已存在对应时间的考勤数据
+                if (uid1.equals(uid2) && dkTimes1.equals(dkTimes2)) {
+                    String objectId = (String)d2.get("id");
+                    d1.put("id", objectId);
+                    break;
+                }
+                model.setData(d1);
+                result.add(model);
+            }
+        }
+        return result;
+    }
+
+    private List<BizObjectModel> getSaveData(
         String schemaCode,
         JSONObject data,
         Map<String, String[]> userMap,
@@ -244,7 +278,32 @@ public class AttendanceService extends JiayunCommonService {
                 }
             }
         }
+        return modelList;
+    }
 
+    private List<BizObjectModel> getAttendanceRecord(String fromDate, String toDate) {
+        try {
+            String schemaCode = "JiaYun_KaoQinMingXi";
+
+            List<String> columns = Lists.newArrayList();
+            columns.add("id");
+
+            FilterExpression filter =
+                new FilterExpression.Item("dakaTimes", FilterExpression.Op.Between, new String[] {fromDate, toDate});
+
+            List<BizObjectModel> formDataList = super.baseQueryFormData(schemaCode, null, columns, filter);
+            if (CollectionUtils.isEmpty(formDataList)) {
+                throw new Exception("未查询到数据");
+            }
+
+            return formDataList;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    private List<String> saveToForm(List<BizObjectModel> modelList) {
         List<String> result = engineService.getBizObjectFacade().addBizObjects(true, this.ADMIN_USER, modelList, null);
         return result;
     }
@@ -288,7 +347,7 @@ public class AttendanceService extends JiayunCommonService {
         String start = new SimpleDateFormat("yyyy-MM-dd").format(new Date(c)) + " 00:00:00";
 
         // return new String[] {start, end};
-        return new String[] {"2023-04-11 00:00:00", "2023-04-19 23:59:59"};
+        return new String[] {"2023-04-17 00:00:00", "2023-04-19 23:59:59"};
     }
 
 }
