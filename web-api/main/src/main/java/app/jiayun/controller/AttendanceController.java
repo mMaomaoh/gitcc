@@ -47,7 +47,7 @@ public class AttendanceController {
 
     @PostMapping("/getColumnVal")
     @ResponseBody
-    public ResponseResult<?> getRecordList() {
+    public ResponseResult<?> getColumnVal() {
         try {
             String corpId = "ding147bfb1d294eb7364ac5d6980864d335";
             String schemaCode = "JiaYun_KaoQinMingXi";
@@ -56,8 +56,15 @@ public class AttendanceController {
             params.put("corpId", corpId);
             params.put("schemaCode", schemaCode);
 
-            ResponseResult<?> result = attendanceApi.getColumnVal(params);
-            return result;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ResponseResult<?> result = attendanceApi.getColumnVal(params);
+                    log.info("getColumnVal end...");
+                }
+            }).start();
+
+            return ResponseResultUtils.getOkResponseResult(null, "任务执行成功");
         } catch (Exception e) {
             return ResponseResultUtils.getErrResponseResult(null, ErrCode.UNKNOW_ERROR.getErrCode(), e.getMessage());
         }

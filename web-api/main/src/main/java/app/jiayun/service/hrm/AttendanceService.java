@@ -165,11 +165,12 @@ public class AttendanceService extends JiayunCommonService {
             }
 
             // 保存到表单
-            List<BizObjectModel> tempList = getSaveData(schemaCode, recordObject, userMap, userDeptMap);
-            List<BizObjectModel> recordList = getAttendanceRecord(fromDate, toDate);
+            List<Map<String, Object>> interDataList = getInterRecordData(recordObject, userMap, userDeptMap);
+            List<BizObjectModel> dbSavedList = getAttendanceRecord(fromDate, toDate);
+            List<BizObjectModel> modelList = buildSaveData(schemaCode, interDataList, dbSavedList);
 
-            List<BizObjectModel> modelList = buildSaveData(tempList, recordList);
             List<String> result = saveToForm(modelList);
+            log.info("[jiayun-hrm]：获取钉钉考勤成功：{}", result);
             return ResponseResultUtils.getOkResponseResult(result, "操作成功");
         } catch (Exception e) {
             log.error("[jiayun-hrm]：获取钉钉考勤异常：{}", e.toString());
@@ -178,44 +179,44 @@ public class AttendanceService extends JiayunCommonService {
         }
     }
 
-    private List<BizObjectModel> buildSaveData(List<BizObjectModel> inteList, List<BizObjectModel> recoList) {
+    @SuppressWarnings("unchecked")
+    private List<BizObjectModel> buildSaveData(String schemaCode, List<Map<String, Object>> interDataList,
+        List<BizObjectModel> dbSavedList) {
 
-        List<BizObjectModel> result = Lists.newArrayList();
-        List<JSONObject> result1 = Lists.newArrayList();
+        List<BizObjectModel> resultList = Lists.newArrayList();
 
-        for (int i = 0; i < inteList.size(); i++) {
-            BizObjectModel model = inteList.get(i);
-            Map<String, Object> d1 = model.getData();
+        for (int i = 0; i < interDataList.size(); i++) {
+            Map<String, Object> d1 = interDataList.get(i);
             String uid1 = (String)d1.get("userName");
             String dkTimes1 = (String)d1.get("dakaTimes");
 
-            for (int k = 0; k < recoList.size(); k++) {
-                Map<String, Object> d2 = recoList.get(k).getData();
+            for (int k = 0; k < dbSavedList.size(); k++) {
+                Map<String, Object> d2 = dbSavedList.get(k).getData();
                 List<SelectionValue> u = (List<SelectionValue>)d2.get("userName");
                 String uid2 = u.get(0).getId();
-                String dkTimes2 = (String)d1.get("dakaTimes");
+                Date de = (Date)d2.get("dakaTimes");
+                String dkTimes2 = new SimpleDateFormat("yyyy-MM-dd").format(de) + " 00:00:00";
                 // 数据库已存在对应时间的考勤数据
                 if (uid1.equals(uid2) && dkTimes1.equals(dkTimes2)) {
                     String objectId = (String)d2.get("id");
                     d1.put("id", objectId);
                     break;
                 }
-                model.setData(d1);
-                result.add(model);
             }
+
+            BizObjectModel model = new BizObjectModel(schemaCode, d1, false);
+            resultList.add(model);
         }
-        return result;
+        return resultList;
     }
 
-    private List<BizObjectModel> getSaveData(
-        String schemaCode,
-        JSONObject data,
-        Map<String, String[]> userMap,
+    private List<Map<String, Object>> getInterRecordData(JSONObject data, Map<String, String[]> userMap,
         Map<String, String> userDeptMap) {
 
         List<BizObjectModel> orgMapping = getOrgMapping();
 
-        List<BizObjectModel> modelList = Lists.newArrayList();
+        List<Map<String, Object>> resultList = Lists.newArrayList();
+
         for (String key : data.keySet()) {
             String[] arr = userMap.get(key);
             String uid = arr[0];
@@ -239,8 +240,8 @@ public class AttendanceService extends JiayunCommonService {
                 Map<String, Object> dataMap = new HashMap<>();
                 dataMap.putAll(object);
 
-                dataMap.put("creater", uid);
                 dataMap.put("sequenceStatus", SequenceStatus.CANCELED);
+                // dataMap.put("creater", uid);
                 dataMap.put("userName", uid);
                 dataMap.put("userDept", udeptId);
                 dataMap.put("dakaTimes", date);
@@ -273,12 +274,11 @@ public class AttendanceService extends JiayunCommonService {
                 int a = object.getIntValue("attendance_days");
                 int b = object.getIntValue("should_attendance_days");
                 if (0 != a || 0 != b) {
-                    BizObjectModel model = new BizObjectModel(schemaCode, dataMap, false);
-                    modelList.add(model);
+                    resultList.add(dataMap);
                 }
             }
         }
-        return modelList;
+        return resultList;
     }
 
     private List<BizObjectModel> getAttendanceRecord(String fromDate, String toDate) {
@@ -293,9 +293,8 @@ public class AttendanceService extends JiayunCommonService {
 
             List<BizObjectModel> formDataList = super.baseQueryFormData(schemaCode, null, columns, filter);
             if (CollectionUtils.isEmpty(formDataList)) {
-                throw new Exception("未查询到数据");
+                return new ArrayList<>();
             }
-
             return formDataList;
         } catch (Exception e) {
             e.printStackTrace();
@@ -304,7 +303,8 @@ public class AttendanceService extends JiayunCommonService {
     }
 
     private List<String> saveToForm(List<BizObjectModel> modelList) {
-        List<String> result = engineService.getBizObjectFacade().addBizObjects(true, this.ADMIN_USER, modelList, null);
+        List<String> result = Lists.newArrayList();
+        engineService.getBizObjectFacade().batchSaveBizObjectModel(this.ADMIN_USER, modelList, "id");
         return result;
     }
 
@@ -343,11 +343,11 @@ public class AttendanceService extends JiayunCommonService {
         // 当前时间往前共三天的开始起止时间
         String end = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + " 23:59:59";
         Date d = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(end);
-        long c = d.getTime() - (3 * 24 * 60 * 60 * 1000);
+        long c = d.getTime() - (2 * 24 * 60 * 60 * 1000);
         String start = new SimpleDateFormat("yyyy-MM-dd").format(new Date(c)) + " 00:00:00";
 
-        // return new String[] {start, end};
-        return new String[] {"2023-04-17 00:00:00", "2023-04-19 23:59:59"};
+        return new String[] {start, end};
+        // return new String[] {"2023-04-11 00:00:00", "2023-04-20 23:59:59"};
     }
 
 }
