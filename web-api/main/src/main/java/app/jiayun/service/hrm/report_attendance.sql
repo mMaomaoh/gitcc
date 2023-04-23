@@ -36,7 +36,7 @@ from (
         t1.userDept,
         t1.belongOrg
     from iktwa_JiaYun_KaoQinMingXi t1
-    where YEARWEEK(date_format(t1.dakaTimes,'%Y-%m-%d')) = YEARWEEK(NOW())
+    where YEARWEEK(date_format(t1.dakaTimes,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1)
     group by t1.userDept
 ) t2
 left join h_org_department t3
@@ -87,7 +87,7 @@ from (
         t1.userDept,
         t1.belongOrg
     from iktwa_JiaYun_KaoQinMingXi t1
-    where YEARWEEK(date_format(t1.dakaTimes,'%Y-%m-%d')) = YEARWEEK(NOW())
+    where YEARWEEK(date_format(t1.dakaTimes,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1)
     group by t1.belongOrg
 ) t2
 left join iktwa_JiaYun_OrgMapping t4
