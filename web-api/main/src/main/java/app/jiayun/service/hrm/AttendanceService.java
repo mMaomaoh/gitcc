@@ -89,33 +89,33 @@ public class AttendanceService extends JiayunCommonService {
 
             // 获取组织架构userId，全员拉取考勤数据
             List<UserModel> userModelList = engineService.getOrganizationFacade().getUsersByCorpId(corpId);
-            List<String> userIds = Lists.newArrayList();
-            List<String> userDeptIds = Lists.newArrayList();
-            Map<String, String[]> userMap = Maps.newHashMap();
+            List<String> userIdList = Lists.newArrayList();
+            List<String> userDeptIdList = Lists.newArrayList();
+            Map<String, String[]> userPropertyMap = Maps.newHashMap();
             for (int k = 0; k < userModelList.size(); k++) {
                 UserModel m = userModelList.get(k);
                 // 过滤掉离职员工，但不包括当天离职的
                 UserWorkStatus status = m.getUserWorkStatus();
                 if (!UserWorkStatus.WAITING_TRANSFER.equals(status) && !UserWorkStatus.DIMISSION.equals(status)) {
                     String uid = m.getUserId();
-                    String dept = m.getDepartmentId();
-                    userIds.add(uid);
-                    userDeptIds.add(dept);
-                    userMap.put(uid, new String[] {m.getId(), dept});
+                    String deptId = m.getDepartmentId();
+                    userIdList.add(uid);
+                    userDeptIdList.add(deptId);
+                    userPropertyMap.put(uid, new String[] {m.getId(), deptId});
                 }
             }
 
             // 获取用户所有部门信息
-            Map<String, String> userDeptMap = Maps.newHashMap();
+            Map<String, String> userDeptQueryCodeMap = Maps.newHashMap();
             List<DepartmentModel> userDeptList =
-                engineService.getOrganizationFacade().getDepartmentsByDeptIds(userDeptIds);
+                engineService.getOrganizationFacade().getDepartmentsByDeptIds(userDeptIdList);
             for (int k = 0; k < userDeptList.size(); k++) {
                 DepartmentModel dm = userDeptList.get(k);
-                userDeptMap.put(dm.getId(), dm.getQueryCode());
+                userDeptQueryCodeMap.put(dm.getId(), dm.getQueryCode());
             }
 
             // 开始封装调用钉钉接口获取考勤数据
-            JSONObject recordObject = new JSONObject();
+            JSONObject interfaceResJson = new JSONObject();
 
             String[] rangeDate = getDateRange();
             String fromDate = rangeDate[0];
@@ -128,8 +128,8 @@ public class AttendanceService extends JiayunCommonService {
             map.put("columnList", columnList);
             map.put("fromDate", fromDate);
             map.put("toDate", toDate);
-            for (int i = 0; i < userIds.size(); i++) {
-                String userId = userIds.get(i);
+            for (int i = 0; i < userIdList.size(); i++) {
+                String userId = userIdList.get(i);
                 map.put("userId", userId);
                 JSONObject res = dingtalkAttendanceService.getColumnVal(accessToken, map);
                 if (0 != res.getIntValue("errcode")) {
@@ -161,12 +161,13 @@ public class AttendanceService extends JiayunCommonService {
                         }
                     }
                 }
-                recordObject.put(userId, colValueMap);
+                interfaceResJson.put(userId, colValueMap);
             }
 
             // 保存到表单
-            List<Map<String, Object>> interDataList = getInterRecordData(recordObject, userMap, userDeptMap);
-            List<BizObjectModel> dbSavedList = getAttendanceRecord(fromDate, toDate);
+            List<Map<String, Object>> interDataList =
+                handleInterfaceData(interfaceResJson, userPropertyMap, userDeptQueryCodeMap);
+            List<BizObjectModel> dbSavedList = getAttendanceRecordFromDb(fromDate, toDate);
             List<BizObjectModel> modelList = buildSaveData(schemaCode, interDataList, dbSavedList);
 
             List<String> result = saveToForm(modelList);
@@ -179,56 +180,26 @@ public class AttendanceService extends JiayunCommonService {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private List<BizObjectModel> buildSaveData(String schemaCode, List<Map<String, Object>> interDataList,
-        List<BizObjectModel> dbSavedList) {
+    private List<Map<String, Object>> handleInterfaceData(JSONObject data, Map<String, String[]> userPropertyMap,
+        Map<String, String> userDeptQueryCodeMap) {
 
-        List<BizObjectModel> resultList = Lists.newArrayList();
-
-        for (int i = 0; i < interDataList.size(); i++) {
-            Map<String, Object> d1 = interDataList.get(i);
-            String uid1 = (String)d1.get("userName");
-            String dkTimes1 = (String)d1.get("dakaTimes");
-
-            for (int k = 0; k < dbSavedList.size(); k++) {
-                Map<String, Object> d2 = dbSavedList.get(k).getData();
-                List<SelectionValue> u = (List<SelectionValue>)d2.get("userName");
-                String uid2 = u.get(0).getId();
-                Date de = (Date)d2.get("dakaTimes");
-                String dkTimes2 = new SimpleDateFormat("yyyy-MM-dd").format(de) + " 00:00:00";
-                // 数据库已存在对应时间的考勤数据
-                if (uid1.equals(uid2) && dkTimes1.equals(dkTimes2)) {
-                    String objectId = (String)d2.get("id");
-                    d1.put("id", objectId);
-                    break;
-                }
-            }
-
-            BizObjectModel model = new BizObjectModel(schemaCode, d1, false);
-            resultList.add(model);
-        }
-        return resultList;
-    }
-
-    private List<Map<String, Object>> getInterRecordData(JSONObject data, Map<String, String[]> userMap,
-        Map<String, String> userDeptMap) {
-
-        List<BizObjectModel> orgMapping = getOrgMapping();
+        List<BizObjectModel> orgMappingList = getOrgMappingList();
 
         List<Map<String, Object>> resultList = Lists.newArrayList();
-
         for (String key : data.keySet()) {
-            String[] arr = userMap.get(key);
+            String[] arr = userPropertyMap.get(key);
             String uid = arr[0];
             String udeptId = arr[1];
-            String deptQueryCode = userDeptMap.get(udeptId);
+            String deptQueryCode = userDeptQueryCodeMap.get(udeptId);
 
             String belongOrg = "";
-            for (BizObjectModel m : orgMapping) {
-                Map<String, Object> map = m.getData();
-                String qc = (String)map.get("orgDeptQueryCode");
+            String orgFirstDeptId = "";
+            for (BizObjectModel bom : orgMappingList) {
+                Map<String, Object> map = bom.getData();
+                String qc = (String)map.get("orgFirstDeptQueryCode");
                 if (deptQueryCode.indexOf(qc) > -1) {
                     belongOrg = (String)map.get("id");
+                    orgFirstDeptId = (String)map.get("orgFirstDeptId");
                     break;
                 }
             }
@@ -241,11 +212,11 @@ public class AttendanceService extends JiayunCommonService {
                 dataMap.putAll(object);
 
                 dataMap.put("sequenceStatus", SequenceStatus.CANCELED);
-                // dataMap.put("creater", uid);
                 dataMap.put("userName", uid);
                 dataMap.put("userDept", udeptId);
                 dataMap.put("dakaTimes", date);
                 dataMap.put("belongOrg", belongOrg);
+                dataMap.put("orgFirstDept", orgFirstDeptId);
 
                 dataMap.put("waichuTimes", 0);
                 dataMap.put("qingJiaTimes", 0);
@@ -281,7 +252,7 @@ public class AttendanceService extends JiayunCommonService {
         return resultList;
     }
 
-    private List<BizObjectModel> getAttendanceRecord(String fromDate, String toDate) {
+    private List<BizObjectModel> getAttendanceRecordFromDb(String fromDate, String toDate) {
         try {
             String schemaCode = "JiaYun_KaoQinMingXi";
 
@@ -302,13 +273,44 @@ public class AttendanceService extends JiayunCommonService {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private List<BizObjectModel> buildSaveData(String schemaCode, List<Map<String, Object>> interDataList,
+        List<BizObjectModel> dbSavedList) {
+
+        List<BizObjectModel> resultList = Lists.newArrayList();
+
+        for (int i = 0; i < interDataList.size(); i++) {
+            Map<String, Object> d1 = interDataList.get(i);
+            String uid1 = (String)d1.get("userName");
+            String dkTimes1 = (String)d1.get("dakaTimes");
+
+            for (int k = 0; k < dbSavedList.size(); k++) {
+                Map<String, Object> d2 = dbSavedList.get(k).getData();
+                List<SelectionValue> u = (List<SelectionValue>)d2.get("userName");
+                String uid2 = u.get(0).getId();
+                Date de = (Date)d2.get("dakaTimes");
+                String dkTimes2 = new SimpleDateFormat("yyyy-MM-dd").format(de) + " 00:00:00";
+                // 数据库已存在对应时间的考勤数据
+                if (uid1.equals(uid2) && dkTimes1.equals(dkTimes2)) {
+                    String objectId = (String)d2.get("id");
+                    d1.put("id", objectId);
+                    break;
+                }
+            }
+
+            BizObjectModel model = new BizObjectModel(schemaCode, d1, false);
+            resultList.add(model);
+        }
+        return resultList;
+    }
+
     private List<String> saveToForm(List<BizObjectModel> modelList) {
         List<String> result = Lists.newArrayList();
         engineService.getBizObjectFacade().batchSaveBizObjectModel(this.ADMIN_USER, modelList, "id");
         return result;
     }
 
-    private List<BizObjectModel> getOrgMapping() {
+    private List<BizObjectModel> getOrgMappingList() {
         try {
             String schemaCode = "JiaYun_OrgMapping";
 
