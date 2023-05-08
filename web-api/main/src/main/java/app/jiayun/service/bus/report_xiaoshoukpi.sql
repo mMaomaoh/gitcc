@@ -68,7 +68,7 @@ from(
     from i8gdl_JiaYun_XiaoShouJXZB t
     left join h_org_user u 
          on u.id=t.userName
-    left join i8gdl_JiaYun_DingDanGuanLi t1
+    left join i8gdl_JiaYun_HeTongGuanLi t1
          on t.userName=t1.creater
          and date_format(t.month,'%Y-%m')=date_format(t1.createdTime,'%Y-%m')
     left join i8gdl_JiaYun_ShangJiGuanLi t2
