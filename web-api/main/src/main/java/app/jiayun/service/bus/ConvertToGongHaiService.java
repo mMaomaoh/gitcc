@@ -109,7 +109,7 @@ public class ConvertToGongHaiService extends JiayunCommonService {
         columns.add("keHuBianHao");
         columns.add("hangYeFenLei");
         columns.add("juTiHangYe");
-        columns.add("qiYeGuiMo");
+        columns.add("qiyeguimo");
         columns.add("qiYeLianXiRen");
         columns.add("qiYeLianXiRenZhiWei");
         columns.add("lianXiDianHua");
@@ -135,7 +135,7 @@ public class ConvertToGongHaiService extends JiayunCommonService {
         columns.add("keHuManager");
         columns.add("hangYeFenLei");
         columns.add("juTiHangYe");
-        columns.add("qiYeGuiMo");
+        columns.add("qiyeguimo");
         columns.add("qiYeLianXiRen");
         columns.add("qiYeLianXiRenZhiWei");
         columns.add("lianXiDianHua");
@@ -189,7 +189,7 @@ public class ConvertToGongHaiService extends JiayunCommonService {
             map.put("keHuManager", data.get("keHuManager"));
             map.put("hangYeFenLei", data.get("hangYeFenLei"));
             map.put("juTiHangYe", data.get("juTiHangYe"));
-            map.put("qiYeGuiMo", data.get("qiYeGuiMo"));
+            map.put("qiyeguimo", data.get("qiYeGuiMo"));
             map.put("qiYeLianXiRen", data.get("qiYeLianXiRen"));
             map.put("lianXiDianHua", data.get("lianXiDianHua"));
             map.put("qiYeLianXiRenZhiWei", data.get("qiYeLianXiRenZhiWei"));
